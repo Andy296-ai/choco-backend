@@ -70,6 +70,47 @@
         color: var(--chocolate);
     }
 
+    .btn-telegram {
+        background-color: #0088cc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-transform: none;
+    }
+
+    .btn-telegram:hover {
+        background-color: #0077b5;
+    }
+
+    .telegram-icon {
+        font-size: 24px;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 20px 0;
+        color: #999;
+        position: relative;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #ddd;
+    }
+
+    .divider span {
+        background: var(--white);
+        padding: 0 15px;
+        position: relative;
+        z-index: 1;
+    }
+
     .dashboard-container {
         max-width: 1000px;
         margin: 50px auto;
@@ -126,47 +167,24 @@
 
 <div class="container">
     @if(!Session::has('client'))
-        <div class="profile-container">
-            <!-- Login Form -->
+        <div style="max-width: 500px; margin: 50px auto; text-align: center;">
             <div class="auth-card">
-                <h2>Вход</h2>
-                <form action="{{ route('client.login') }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label>Email или Телефон</label>
-                        <input type="text" name="login" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Пароль</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn-auth">Войти</button>
-                </form>
-            </div>
+                <h2>Вход в кабинет</h2>
+                <p style="margin-bottom: 30px; color: var(--text-light);">Для доступа к личному кабинету, пожалуйста, авторизуйтесь через Telegram. Это быстро и безопасно.</p>
+                
+                <!-- Telegram Login Widget -->
+                <div style="display: flex; justify-content: center;">
+                    <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                            data-telegram-login="choco_bot"
+                            data-size="large"
+                            data-auth-url="{{ route('auth.telegram') }}"
+                            data-request-access="write"
+                            data-radius="5"></script>
+                </div>
 
-            <!-- Registration Form -->
-            <div class="auth-card">
-                <h2>Регистрация</h2>
-                <form action="{{ route('client.register') }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label>Ваше имя</label>
-                        <input type="text" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Телефон</label>
-                        <input type="tel" name="phone" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Пароль</label>
-                        <input type="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn-auth">Зарегистрироваться</button>
-                </form>
+                <p style="margin-top: 30px; font-size: 14px; color: #888;">
+                    Нажимая кнопку входа, вы соглашаетесь с правилами нашего сервиса.
+                </p>
             </div>
         </div>
     @else
@@ -176,6 +194,12 @@
                 <div>
                     <h2>Здравствуйте, {{ Session::get('client.name') }}!</h2>
                     <p style="color: #888;">Добро пожаловать в ваш личный кабинет</p>
+                    @if(Session::get('client.telegram_id'))
+                        <p style="color: #0088cc; margin-top: 5px;">
+                            <span class="telegram-icon">✈️</span> 
+                            Подключён к аккаунту Telegram: @{{ Session::get('client.telegram_username') }}
+                        </p>
+                    @endif
                 </div>
                 <form action="{{ route('client.logout') }}" method="POST">
                     @csrf

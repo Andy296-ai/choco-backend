@@ -43,35 +43,6 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    // Client Auth
-    public function clientLogin(Request $request)
-    {
-        // Mock client login
-        $login = $request->input('login');
-        $password = $request->input('password');
-
-        if ($login === 'client' && $password === 'pass') {
-            Session::put('client', [
-                'name' => 'Анна Иванова',
-                'email' => 'anna@example.com',
-                'phone' => '+7 (900) 123-45-67'
-            ]);
-            return redirect()->route('profile');
-        }
-
-        return back()->withErrors(['login' => 'Неверный логин или пароль']);
-    }
-
-    public function clientRegister(Request $request)
-    {
-        // Mock registration
-        Session::put('client', [
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'phone' => $request->input('phone')
-        ]);
-        return redirect()->route('profile');
-    }
 
     public function clientLogout()
     {

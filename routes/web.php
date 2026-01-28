@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LoginController;
 
 Route::get('/', function () {
@@ -26,12 +28,6 @@ Route::get('/booking', function () {
     return view('booking');
 })->name('booking');
 
-Route::get('/profile', function () {
-    return view('profile');
-})->name('profile');
-
-Route::post('/client/login', [LoginController::class, 'clientLogin'])->name('client.login');
-Route::post('/client/register', [LoginController::class, 'clientRegister'])->name('client.register');
 Route::post('/client/logout', [LoginController::class, 'clientLogout'])->name('client.logout');
 
 // Auth Routes
@@ -63,5 +59,11 @@ Route::prefix('specialist')->name('specialist.')->group(function () {
     Route::get('/materials', function () { return view('panels.specialist.materials'); })->name('materials');
 });
 
+// Auth
+Route::post('/auth/telegram', [AuthController::class, 'telegramAuth'])->name('auth.telegram');
+
+Route::get('/profile', function () {
+    return view('profile');
+})->name('profile');
 
 
