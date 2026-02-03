@@ -137,21 +137,18 @@
 
         <div class="content-card">
             <div class="master-grid">
+                @forelse($masters as $master)
                 <div class="master-card">
-                    <h4>Елена К.</h4>
-                    <p>Топ-стилист</p>
+                    <h4>{{ $master->name }}</h4>
+                    <p>{{ $master->telegram_username ? '@' . $master->telegram_username : 'Специалист' }}</p>
                     <button class="btn-schedule">График работы</button>
+                    <button class="btn-schedule" style="background: #f5f5f5; margin-top: 5px;">Отметить отсутствие</button>
                 </div>
-                <div class="master-card">
-                    <h4>Ольга С.</h4>
-                    <p>Мастер маникюра</p>
-                    <button class="btn-schedule">График работы</button>
+                @empty
+                <div style="grid-column: 1/-1; text-align: center; color: #888;">
+                    <p>В этом салоне мастера пока не назначены</p>
                 </div>
-                <div class="master-card">
-                    <h4>Ирина М.</h4>
-                    <p>Косметолог</p>
-                    <button class="btn-schedule">График работы</button>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>

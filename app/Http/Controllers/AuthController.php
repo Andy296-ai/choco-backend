@@ -29,15 +29,7 @@ class AuthController extends Controller
             
             $user = User::findOrCreateFromTelegram($telegramData);
             
-            Session::put('client', [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'telegram_id' => $user->telegram_id,
-                'telegram_username' => $user->telegram_username,
-                'telegram_photo_url' => $user->telegram_photo_url,
-            ]);
+            Auth::login($user, true);
             
             return redirect()->route('profile')->with('success', 'Вы успешно вошли через Telegram!');
             

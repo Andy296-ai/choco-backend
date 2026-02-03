@@ -162,7 +162,7 @@
         <div class="header">
             <h1>Панель Специалиста</h1>
             <div class="user-info">
-                <span>{{ Session::get('user.name') }}</span>
+                <span>{{ auth()->user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                     @csrf
                     <button type="submit" class="logout-btn">Выйти</button>
@@ -171,43 +171,31 @@
         </div>
 
         <div class="schedule-container">
-            <div class="schedule-header">
-                <h3>Записи на сегодня (26 января)</h3>
+            <div class="schedule-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Записи на сегодня ({{ now()->translatedFormat('j F') }})</h3>
+                <div style="text-align: right;">
+                    <span style="font-size: 14px; color: #888;">Мой доход за месяц:</span>
+                    <strong style="color: var(--chocolate); font-size: 18px;">{{ number_format($earnings, 0, '.', ' ') }} ₽</strong>
+                </div>
             </div>
             <div class="schedule-list">
+                @forelse($bookings as $booking)
                 <div class="schedule-item">
-                    <div class="schedule-time">10:00</div>
+                    <div class="schedule-time">{{ $booking->start_time->format('H:i') }}</div>
                     <div class="client-info">
-                        <h4>Анна Иванова</h4>
-                        <p>Сложное окрашивание (Airtouch)</p>
+                        <h4>{{ $booking->user->name }}</h4>
+                        <p>{{ $booking->service->name }}</p>
                     </div>
                     <div class="action-btns">
                         <button class="btn-action">Детали</button>
                         <button class="btn-action btn-complete">Завершить</button>
                     </div>
                 </div>
+                @empty
                 <div class="schedule-item">
-                    <div class="schedule-time">15:00</div>
-                    <div class="client-info">
-                        <h4>Светлана К.</h4>
-                        <p>Стрижка женская + укладка</p>
-                    </div>
-                    <div class="action-btns">
-                        <button class="btn-action">Детали</button>
-                        <button class="btn-action btn-complete">Завершить</button>
-                    </div>
+                    <p style="color: #888; text-align: center; width: 100%;">На сегодня записей нет</p>
                 </div>
-                <div class="schedule-item" style="opacity: 0.5;">
-                    <div class="schedule-time">17:30</div>
-                    <div class="client-info">
-                        <h4>Екатерина Д.</h4>
-                        <p>Тонирование волос</p>
-                    </div>
-                    <div class="action-btns">
-                        <button class="btn-action">Детали</button>
-                        <button class="btn-action btn-complete">Завершить</button>
-                    </div>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>

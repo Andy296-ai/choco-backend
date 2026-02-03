@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 class LoginController extends Controller
 {
     public function showLoginForm()
@@ -24,14 +27,21 @@ class LoginController extends Controller
         $password = $request->input('password');
 
         if (isset($credentials[$login]) && $credentials[$login]['password'] === $password) {
-            $user = $credentials[$login];
-            Session::put('user', [
-                'login' => $login,
-                'role' => $user['role'],
-                'name' => $user['name']
-            ]);
+            $cred = $credentials[$login];
+            
+            // Find or create a user in the DB for the hardcoded login to work with Auth
+            $user = User::firstOrCreate(
+                ['email' => $login . '@admin.com'],
+                [
+                    'name' => $cred['name'],
+                    'password' => bcrypt($password),
+                    'role' => $cred['role']
+                ]
+            );
 
-            return redirect()->route($user['role'] . '.dashboard');
+            Auth::login($user);
+
+            return redirect()->route($user->role . '.dashboard');
         }
 
         return back()->withErrors(['login' => 'Неверный логин или пароль']);
@@ -39,13 +49,14 @@ class LoginController extends Controller
 
     public function logout()
     {
+        Auth::logout();
         Session::forget('user');
         return redirect()->route('login');
     }
 
-
     public function clientLogout()
     {
+        Auth::logout();
         Session::forget('client');
         return redirect()->route('profile');
     }

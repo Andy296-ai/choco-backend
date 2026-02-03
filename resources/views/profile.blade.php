@@ -166,7 +166,7 @@
 </div>
 
 <div class="container">
-    @if(!Session::has('client'))
+    @if(!auth()->check())
         <div style="max-width: 500px; margin: 50px auto; text-align: center;">
             <div class="auth-card">
                 <h2>Вход в кабинет</h2>
@@ -192,12 +192,12 @@
         <div class="dashboard-container">
             <div class="dashboard-header">
                 <div>
-                    <h2>Здравствуйте, {{ Session::get('client.name') }}!</h2>
+                    <h2>Здравствуйте, {{ auth()->user()->name }}!</h2>
                     <p style="color: #888;">Добро пожаловать в ваш личный кабинет</p>
-                    @if(Session::get('client.telegram_id'))
+                    @if(auth()->user()->telegram_id)
                         <p style="color: #0088cc; margin-top: 5px;">
                             <span class="telegram-icon">✈️</span> 
-                            Подключён к аккаунту Telegram: @{{ Session::get('client.telegram_username') }}
+                            Подключён к аккаунту Telegram: @{{ auth()->user()->telegram_username }}
                         </p>
                     @endif
                 </div>

@@ -21,7 +21,14 @@ class User extends Authenticatable
         'telegram_first_name',
         'telegram_last_name',
         'telegram_photo_url',
+        'role',
+        'salon_id',
     ];
+
+    const ROLE_CLIENT = 'client';
+    const ROLE_SPECIALIST = 'specialist';
+    const ROLE_ADMIN = 'admin';
+    const ROLE_DIRECTOR = 'director';
 
     protected $hidden = [
         'password',
@@ -61,6 +68,7 @@ class User extends Authenticatable
             'telegram_first_name' => $telegramData['first_name'],
             'telegram_last_name' => $telegramData['last_name'] ?? null,
             'telegram_photo_url' => $telegramData['photo_url'] ?? null,
+            'role' => self::ROLE_CLIENT,
         ]);
     }
 
@@ -69,4 +77,34 @@ class User extends Authenticatable
     {
         return !is_null($this->telegram_id);
     }
+
+    public function salon()
+    {
+        return $this->belongsTo(Salon::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function specialistBookings()
+    {
+        return $this->hasMany(Booking::class, 'specialist_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function portfolioItems()
+    {
+        return $this->hasMany(PortfolioItem::class);
+    }
+
+    public function isDirector() { return $this->role === self::ROLE_DIRECTOR; }
+    public function isAdmin() { return $this->role === self::ROLE_ADMIN; }
+    public function isSpecialist() { return $this->role === self::ROLE_SPECIALIST; }
+    public function isClient() { return $this->role === self::ROLE_CLIENT; }
 }

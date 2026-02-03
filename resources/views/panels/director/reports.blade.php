@@ -136,7 +136,7 @@
         <div class="header">
             <h1>Отчеты</h1>
             <div class="user-info">
-                <span>{{ Session::get('user.name') }}</span>
+                <span>{{ auth()->user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" style="display:inline;">
                     @csrf
                     <button type="submit" class="logout-btn">Выйти</button>

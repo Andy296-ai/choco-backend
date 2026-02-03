@@ -165,7 +165,7 @@
         <div class="header">
             <h1>Панель Директора</h1>
             <div class="user-info">
-                <span>{{ Session::get('user.name') }}</span>
+                <span>{{ auth()->user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="logout-btn">Выйти</button>
@@ -175,20 +175,20 @@
 
         <div class="dashboard-grid">
             <div class="card">
+                <h3>Всего Салонов</h3>
+                <div class="value">{{ $salonsCount }}</div>
+            </div>
+            <div class="card">
+                <h3>Администраторы</h3>
+                <div class="value">{{ $adminsCount }}</div>
+            </div>
+            <div class="card">
+                <h3>Мастера</h3>
+                <div class="value">{{ $mastersCount }}</div>
+            </div>
+            <div class="card">
                 <h3>Выручка за месяц</h3>
-                <div class="value">1 250 000 ₽</div>
-            </div>
-            <div class="card">
-                <h3>Новые клиенты</h3>
-                <div class="value">142</div>
-            </div>
-            <div class="card">
-                <h3>Средний чек</h3>
-                <div class="value">3 200 ₽</div>
-            </div>
-            <div class="card">
-                <h3>Загрузка салона</h3>
-                <div class="value">85%</div>
+                <div class="value">{{ $stats['revenue_month'] }}</div>
             </div>
         </div>
 
