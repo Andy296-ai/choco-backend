@@ -204,6 +204,11 @@
                     </div>
                 </div>
 
+                @if(request('from') === 'booking')
+                    <p style="margin-top: 20px; padding: 12px; background: #e3f2fd; border-radius: 8px; font-size: 14px; color: #1565c0;">
+                        После входа вы сможете завершить онлайн-запись. <a href="{{ route('booking') }}" style="color: var(--chocolate); font-weight: 600;">Вернуться к записи</a>
+                    </p>
+                @endif
                 <p style="margin-top: 30px; font-size: 14px; color: #888; text-align: center;">
                     Нажимая кнопку входа, вы соглашаетесь с правилами нашего сервиса.
                 </p>
@@ -232,6 +237,11 @@
             @if(session('success'))
                 <div style="background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 5px; margin-bottom: 25px;">
                     {{ session('success') }}
+                </div>
+            @endif
+            @if(request('from') === 'booking')
+                <div style="background: #e3f2fd; color: #1565c0; padding: 15px; border-radius: 5px; margin-bottom: 25px;">
+                    Вы вошли в кабинет. Теперь можете <a href="{{ route('booking') }}" style="color: var(--chocolate); font-weight: 600;">перейти к онлайн-записи</a> и завершить бронирование.
                 </div>
             @endif
 

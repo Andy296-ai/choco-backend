@@ -121,6 +121,48 @@
     .btn-next { background: var(--gold); color: var(--chocolate); }
     .btn-prev { background: #eee; color: #888; }
 
+    .slot-error { color: #c62828; }
+
+    .auth-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    .auth-modal {
+        background: var(--white);
+        padding: 32px;
+        border-radius: 10px;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .auth-modal h3 { margin-bottom: 16px; color: var(--chocolate); }
+    .auth-modal p { margin-bottom: 24px; color: #555; }
+    .auth-modal .btn-telegram {
+        display: inline-block;
+        padding: 14px 28px;
+        background: #0088cc;
+        color: #fff !important;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    .auth-modal .btn-telegram:hover { background: #006699; color: #fff; }
+    .auth-modal .btn-close {
+        display: block;
+        margin-top: 12px;
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
@@ -185,6 +227,16 @@
                 <button type="button" class="btn-next" onclick="nextStep()" id="nextBtn" disabled>Далее</button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Модалка: войти через Telegram для записи --}}
+<div id="authRequiredModal" class="auth-modal-overlay" style="display: none;">
+    <div class="auth-modal">
+        <h3>Вход для записи</h3>
+        <p>Для онлайн-записи необходимо войти в личный кабинет через Telegram. Это быстро и безопасно.</p>
+        <a href="{{ route('profile') }}?from=booking" class="btn-telegram">Войти через Telegram</a>
+        <button type="button" class="btn-close" onclick="closeAuthModal()">Закрыть</button>
     </div>
 </div>
 @endsection
@@ -278,15 +330,30 @@
     async function loadTimeSlots() {
         const grid = document.getElementById('timeGrid');
         grid.innerHTML = '<p>Загрузка времени...</p>';
+        const params = new URLSearchParams({
+            specialist_id: formData.specialist_id,
+            date: formData.date
+        });
+        if (formData.salon_id) params.set('salon_id', formData.salon_id);
+        if (formData.service_id) params.set('service_id', formData.service_id);
         try {
-            const response = await fetch(`{{ route('api.slots') }}?specialist_id=${formData.specialist_id}&date=${formData.date}`);
-            const slots = await response.json();
-            
+            const response = await fetch(`{{ route('api.slots') }}?${params.toString()}`);
+            const data = await response.json();
+            if (!response.ok) {
+                const msg = data.error || data.message || 'Ошибка загрузки времени';
+                grid.innerHTML = `<p class="slot-error">${msg}</p>`;
+                return;
+            }
+            const slots = Array.isArray(data) ? data : [];
+            if (slots.length === 0) {
+                grid.innerHTML = '<p>На эту дату нет свободных слотов. Выберите другую дату.</p>';
+                return;
+            }
             grid.innerHTML = slots.map(slot => `
                 <div class="selection-item" onclick="selectItem(this, 'time', '${slot}')">${slot}</div>
             `).join('');
         } catch (error) {
-            grid.innerHTML = '<p>Ошибка загрузки времени.</p>';
+            grid.innerHTML = '<p>Ошибка загрузки времени. Проверьте подключение и обновите страницу.</p>';
         }
     }
 
@@ -357,23 +424,37 @@
                 body: JSON.stringify(formData)
             });
 
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
 
             if (response.ok) {
                 alert(result.message || 'Запись успешно создана!');
                 window.location.href = "{{ route('home') }}";
-            } else {
-                alert(result.error || result.message || 'Произошла ошибка при создании записи.');
+                return;
+            }
+
+            // Требуется авторизация — показываем модалку с предложением войти через Telegram
+            if (response.status === 401 && result.require_auth) {
+                document.getElementById('authRequiredModal').style.display = 'flex';
                 nextBtn.disabled = false;
                 prevBtn.disabled = false;
                 nextBtn.innerText = 'Записаться';
+                return;
             }
+
+            alert(result.error || result.message || 'Произошла ошибка при создании записи.');
+            nextBtn.disabled = false;
+            prevBtn.disabled = false;
+            nextBtn.innerText = 'Записаться';
         } catch (error) {
             alert('Произошла ошибка при создании записи. Попробуйте позже.');
             nextBtn.disabled = false;
             prevBtn.disabled = false;
             nextBtn.innerText = 'Записаться';
         }
+    }
+
+    function closeAuthModal() {
+        document.getElementById('authRequiredModal').style.display = 'none';
     }
 
     function prevStep() {

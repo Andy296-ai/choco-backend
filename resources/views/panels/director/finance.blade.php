@@ -185,6 +185,7 @@
             <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
             <li class="nav-item"><a href="{{ route('director.finance') }}" class="active">Финансы</a></li>
             <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
+            <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
         </ul>
     </div>
 

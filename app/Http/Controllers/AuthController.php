@@ -17,8 +17,14 @@ class AuthController extends Controller
             $data = $request->all();
             \Illuminate\Support\Facades\Log::info('Telegram Auth Request:', $data);
             
+            // Проверяем наличие обязательных полей
+            if (empty($data['id']) || empty($data['first_name']) || empty($data['auth_date']) || empty($data['hash'])) {
+                \Illuminate\Support\Facades\Log::error('Telegram Auth: Missing required fields', $data);
+                return redirect()->route('profile')->with('error', 'Неполные данные от Telegram');
+            }
+            
             if (!$this->verifyTelegramHash($data)) {
-                \Illuminate\Support\Facades\Log::error('Telegram Hash Verification Failed.');
+                \Illuminate\Support\Facades\Log::error('Telegram Hash Verification Failed.', ['data' => $data]);
                 return redirect()->route('profile')->with('error', 'Неверная подпись Telegram');
             }
             
@@ -42,36 +48,70 @@ class AuthController extends Controller
             
             return redirect()->route('profile')->with('success', 'Вы успешно вошли через Telegram!');
             
+        } catch (\InvalidArgumentException $e) {
+            \Illuminate\Support\Facades\Log::error('Telegram Auth Validation Error: ' . $e->getMessage());
+            return redirect()->route('profile')->with('error', 'Ошибка валидации данных: ' . $e->getMessage());
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Telegram Auth Exception: ' . $e->getMessage());
-            return redirect()->route('profile')->with('error', 'Ошибка авторизации: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Telegram Auth Exception', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('profile')->with('error', 'Ошибка авторизации. Попробуйте позже или обратитесь в поддержку.');
         }
     }
     
     private function verifyTelegramHash(array $data)
     {
         $botToken = config('services.telegram.bot_token');
-        if (empty($botToken)) return false;
+        if (empty($botToken)) {
+            \Log::error('Telegram bot token is not configured');
+            return false;
+        }
+
+        // Проверяем наличие hash
+        if (empty($data['hash'])) {
+            \Log::error('Telegram hash is missing');
+            return false;
+        }
 
         $checkHash = $data['hash'];
-        unset($data['hash']);
+        $authDate = $data['auth_date'] ?? null;
         
-        ksort($data);
-        
-        $dataCheckString = [];
-        foreach ($data as $key => $value) {
-            $dataCheckString[] = $key . '=' . $value;
-        }
-        $dataCheckString = implode("\n", $dataCheckString);
-        
-        $secretKey = hash('sha256', $botToken, true);
-        $hash = hash_hmac('sha256', $dataCheckString, $secretKey);
-        
-        if (strcmp($hash, $checkHash) !== 0) {
+        // Проверяем срок действия данных (не более 24 часов)
+        if ($authDate && (time() - (int)$authDate) > 86400) {
+            \Log::error('Telegram auth data expired', ['auth_date' => $authDate]);
             return false;
         }
         
-        if ((time() - $data['auth_date']) > 86400) {
+        // Создаем копию данных без hash для проверки
+        $dataForCheck = $data;
+        unset($dataForCheck['hash']);
+        
+        // Сортируем ключи
+        ksort($dataForCheck);
+        
+        // Формируем строку для проверки
+        $dataCheckString = [];
+        foreach ($dataForCheck as $key => $value) {
+            if ($value !== null && $value !== '') {
+                $dataCheckString[] = $key . '=' . $value;
+            }
+        }
+        $dataCheckString = implode("\n", $dataCheckString);
+        
+        // Вычисляем секретный ключ
+        $secretKey = hash('sha256', $botToken, true);
+        $hash = hash_hmac('sha256', $dataCheckString, $secretKey);
+        
+        // Сравниваем хеши безопасным способом
+        if (!hash_equals($hash, $checkHash)) {
+            \Log::error('Telegram hash mismatch', [
+                'expected' => $hash,
+                'received' => $checkHash,
+                'data_string' => $dataCheckString
+            ]);
             return false;
         }
         

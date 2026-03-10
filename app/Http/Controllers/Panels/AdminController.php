@@ -11,6 +11,7 @@ use App\Models\Salon;
 use App\Services\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class AdminController extends Controller
@@ -77,67 +78,144 @@ class AdminController extends Controller
             'service_id' => 'required|exists:services,id',
             'specialist_id' => 'required|exists:users,id',
             'start_time' => 'required|date',
-            'status' => 'required|string',
+            'status' => 'required|string|in:pending,confirmed,completed,cancelled',
         ]);
 
         $service = Service::findOrFail($validated['service_id']);
         $startTime = Carbon::parse($validated['start_time']);
         $endTime = (clone $startTime)->addMinutes($service->duration_minutes);
 
-        $booking = Booking::create([
-            'client_id' => $validated['client_id'],
-            'salon_id' => $user->salon_id,
-            'service_id' => $validated['service_id'],
-            'specialist_id' => $validated['specialist_id'],
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'status' => $validated['status'],
-        ]);
+        // Проверяем, что специалист работает в салоне админа
+        $specialist = User::where('id', $validated['specialist_id'])
+            ->where('role', User::ROLE_SPECIALIST)
+            ->where('salon_id', $user->salon_id)
+            ->first();
 
-        // Отправка уведомления
-        try {
-            $telegramService = app(TelegramNotificationService::class);
-            $telegramService->notifyBookingCreated($booking->load(['client', 'service', 'specialist', 'salon']));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+        if (!$specialist) {
+            return response()->json(['error' => 'Специалист не найден или не работает в вашем салоне'], 422);
         }
 
-        return response()->json(['message' => 'Запись создана', 'booking' => $booking]);
+        // Проверяем доступность специалиста (если статус не cancelled)
+        if ($validated['status'] !== 'cancelled') {
+            if (!Booking::isSpecialistAvailable($validated['specialist_id'], $startTime, $endTime)) {
+                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
+            }
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $booking = Booking::create([
+                'client_id' => $validated['client_id'],
+                'salon_id' => $user->salon_id,
+                'service_id' => $validated['service_id'],
+                'specialist_id' => $validated['specialist_id'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => $validated['status'],
+            ]);
+
+            \DB::commit();
+
+            // Отправка уведомления
+            try {
+                $telegramService = app(TelegramNotificationService::class);
+                $telegramService->notifyBookingCreated($booking->load(['client', 'service', 'specialist', 'salon']));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+            }
+
+            return response()->json(['message' => 'Запись создана', 'booking' => $booking]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Failed to create booking', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Ошибка при создании записи'], 500);
+        }
     }
 
     public function updateBooking(Request $request, Booking $booking)
     {
+        $user = Auth::user();
+        
+        // Проверяем, что админ работает в том же салоне, что и бронирование
+        if ($user->salon_id && $booking->salon_id !== $user->salon_id) {
+            return response()->json(['error' => 'Нет доступа к этой записи'], 403);
+        }
+
         $validated = $request->validate([
             'service_id' => 'required|exists:services,id',
             'specialist_id' => 'required|exists:users,id',
             'start_time' => 'required|date',
-            'status' => 'required|string',
+            'status' => 'required|string|in:pending,confirmed,completed,cancelled',
         ]);
 
         $service = Service::findOrFail($validated['service_id']);
         $startTime = Carbon::parse($validated['start_time']);
         $endTime = (clone $startTime)->addMinutes($service->duration_minutes);
 
-        $oldStatus = $booking->status;
-        $booking->update([
-            'service_id' => $validated['service_id'],
-            'specialist_id' => $validated['specialist_id'],
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'status' => $validated['status'],
-        ]);
+        // Проверяем, что время не в прошлом (если статус не cancelled)
+        if ($validated['status'] !== 'cancelled' && $startTime->isPast()) {
+            return response()->json(['error' => 'Нельзя установить прошедшее время для активной записи'], 422);
+        }
 
-        // Отправка уведомления если статус изменился
-        if ($oldStatus !== $validated['status']) {
-            try {
-                $telegramService = app(TelegramNotificationService::class);
-                $telegramService->notifyBookingStatusChanged($booking->load(['client', 'service', 'specialist', 'salon']));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+        // Проверяем доступность специалиста на новое время (если статус не cancelled)
+        if ($validated['status'] !== 'cancelled') {
+            // Проверяем конфликты, исключая текущее бронирование
+            $hasConflict = Booking::where('specialist_id', $validated['specialist_id'])
+                ->where('id', '!=', $booking->id)
+                ->where('status', '!=', 'cancelled')
+                ->where(function($query) use ($startTime, $endTime) {
+                    $query->where(function($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '>=', $startTime)->where('start_time', '<', $endTime);
+                    })->orWhere(function($q) use ($startTime, $endTime) {
+                        $q->where('end_time', '>', $startTime)->where('end_time', '<=', $endTime);
+                    })->orWhere(function($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<=', $startTime)->where('end_time', '>=', $endTime);
+                    });
+                })
+                ->exists();
+
+            if ($hasConflict) {
+                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
+            }
+
+            // Проверяем доступность специалиста через метод модели (исключаем текущее бронирование)
+            if (!Booking::isSpecialistAvailable($validated['specialist_id'], $startTime, $endTime, $booking->id)) {
+                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
             }
         }
 
-        return response()->json(['message' => 'Запись обновлена', 'booking' => $booking]);
+        $oldStatus = $booking->status;
+        
+        try {
+            \DB::beginTransaction();
+
+            $booking->update([
+                'service_id' => $validated['service_id'],
+                'specialist_id' => $validated['specialist_id'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => $validated['status'],
+            ]);
+
+            \DB::commit();
+
+            // Отправка уведомления если статус изменился
+            if ($oldStatus !== $validated['status']) {
+                try {
+                    $telegramService = app(TelegramNotificationService::class);
+                    $telegramService->notifyBookingStatusChanged($booking->load(['client', 'service', 'specialist', 'salon']));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+                }
+            }
+
+            return response()->json(['message' => 'Запись обновлена', 'booking' => $booking]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Failed to update booking', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Ошибка при обновлении записи'], 500);
+        }
     }
 
     public function deleteBooking(Booking $booking)

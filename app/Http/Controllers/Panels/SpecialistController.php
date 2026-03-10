@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Booking;
 use App\Models\PortfolioItem;
 
@@ -138,16 +139,35 @@ class SpecialistController extends Controller
             'status' => 'required|in:confirmed,completed,cancelled',
         ]);
 
-        $booking->update(['status' => $validated['status']]);
+        $oldStatus = $booking->status;
 
-        // Отправка уведомления об изменении статуса
-        try {
-            $telegramService = app(TelegramNotificationService::class);
-            $telegramService->notifyBookingStatusChanged($booking->load(['client', 'service', 'specialist', 'salon']));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+        // Проверяем логику изменения статуса
+        if ($oldStatus === 'completed' && $validated['status'] !== 'completed') {
+            return response()->json(['error' => 'Нельзя изменить статус завершенной записи'], 422);
         }
 
-        return response()->json(['message' => 'Статус обновлен', 'booking' => $booking]);
+        try {
+            \DB::beginTransaction();
+
+            $booking->update(['status' => $validated['status']]);
+
+            \DB::commit();
+
+            // Отправка уведомления об изменении статуса (только если статус изменился)
+            if ($oldStatus !== $validated['status']) {
+                try {
+                    $telegramService = app(TelegramNotificationService::class);
+                    $telegramService->notifyBookingStatusChanged($booking->load(['client', 'service', 'specialist', 'salon']));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
+                }
+            }
+
+            return response()->json(['message' => 'Статус обновлен', 'booking' => $booking]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Failed to update booking status', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Ошибка при обновлении статуса'], 500);
+        }
     }
 }

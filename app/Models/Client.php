@@ -34,34 +34,73 @@ class Client extends Authenticatable
 
     public static function findOrCreateFromTelegram(array $telegramData)
     {
-        $client = static::where('telegram_id', $telegramData['id'])->first();
+        // Проверяем наличие обязательных полей
+        if (empty($telegramData['id']) || empty($telegramData['first_name'])) {
+            throw new \InvalidArgumentException('Отсутствуют обязательные данные Telegram');
+        }
+
+        // Преобразуем telegram_id в строку для консистентности
+        $telegramId = (string) $telegramData['id'];
+        
+        // Ищем существующего клиента по telegram_id
+        $client = static::where('telegram_id', $telegramId)->first();
 
         if ($client) {
-            $client->update([
-                'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
+            // Обновляем данные существующего клиента
+            $updateData = [
+                'name' => trim($telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? '')),
+                'telegram_username' => $telegramData['username'] ?? null,
+                'telegram_first_name' => $telegramData['first_name'],
+                'telegram_last_name' => $telegramData['last_name'] ?? null,
+                'telegram_photo_url' => $telegramData['photo_url'] ?? null,
+            ];
+            
+            $client->update($updateData);
+            return $client;
+        }
+
+        // Создаем нового клиента
+        // Генерируем уникальный email
+        $baseEmail = $telegramData['username'] 
+            ? $telegramData['username'] . '@telegram.com' 
+            : 'telegram_' . $telegramId . '@telegram.com';
+        
+        // Проверяем уникальность email и добавляем суффикс если нужно
+        $email = $baseEmail;
+        $counter = 1;
+        while (static::where('email', $email)->exists()) {
+            $email = str_replace('@telegram.com', '_' . $counter . '@telegram.com', $baseEmail);
+            $counter++;
+        }
+
+        try {
+            $client = static::create([
+                'name' => trim($telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? '')),
+                'email' => $email,
+                'phone' => null,
+                'password' => bcrypt(Str::random(20)), 
+                'telegram_id' => $telegramId,
                 'telegram_username' => $telegramData['username'] ?? null,
                 'telegram_first_name' => $telegramData['first_name'],
                 'telegram_last_name' => $telegramData['last_name'] ?? null,
                 'telegram_photo_url' => $telegramData['photo_url'] ?? null,
             ]);
+            
+            \Log::info('Client created from Telegram', [
+                'client_id' => $client->id,
+                'telegram_id' => $telegramId,
+                'email' => $email
+            ]);
+            
             return $client;
+        } catch (\Exception $e) {
+            \Log::error('Failed to create client from Telegram', [
+                'telegram_id' => $telegramId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
         }
-
-        $email = $telegramData['username'] 
-            ? $telegramData['username'] . '@telegram.com' 
-            : $telegramData['id'] . '@telegram.com';
-
-        return static::create([
-            'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
-            'email' => $email,
-            'phone' => null,
-            'password' => bcrypt(Str::random(20)), 
-            'telegram_id' => $telegramData['id'],
-            'telegram_username' => $telegramData['username'] ?? null,
-            'telegram_first_name' => $telegramData['first_name'],
-            'telegram_last_name' => $telegramData['last_name'] ?? null,
-            'telegram_photo_url' => $telegramData['photo_url'] ?? null,
-        ]);
     }
 
     public function bookings()

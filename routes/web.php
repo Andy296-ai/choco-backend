@@ -46,7 +46,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:director'])->prefix('director')->name('director.')->group(function () {
     Route::get('/', [App\Http\Controllers\Panels\DirectorController::class, 'dashboard'])->name('dashboard');
     Route::get('/employees', [App\Http\Controllers\Panels\DirectorController::class, 'employees'])->name('employees');
-    
+    // Database management
+    Route::get('/db', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'index'])->name('db.index');
+    Route::get('/db/table/{table}', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'showTable'])->name('db.table');
+    Route::get('/db/table/{table}/create', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'create'])->name('db.create');
+    Route::post('/db/table/{table}/store', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'store'])->name('db.store');
+    Route::get('/db/table/{table}/edit/{id}', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'edit'])->name('db.edit');
+    Route::put('/db/table/{table}/update/{id}', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'update'])->name('db.update');
+    Route::delete('/db/table/{table}/delete/{id}', [App\Http\Controllers\Panels\DirectorDatabaseController::class, 'destroy'])->name('db.destroy');
+
     // Employee CRUD
     Route::post('/employees', [App\Http\Controllers\Panels\DirectorController::class, 'storeEmployee'])->name('employees.store');
     Route::patch('/employees/{employee}', [App\Http\Controllers\Panels\DirectorController::class, 'updateEmployee'])->name('employees.update');
@@ -100,13 +108,8 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/available-slots', [App\Http\Controllers\Api\BookingApiController::class, 'getAvailableSlots'])->name('slots');
 });
 
-Route::get('/debug/become-director', function () {
-    if ($user = auth()->user()) {
-        $user->update(['role' => 'director']);
-        return "Success! You are now a Director. <a href='".route('director.dashboard')."'>Go to Dashboard</a>";
-    }
-    return "Please login first.";
-})->middleware('auth');
+// Debug route removed for security reasons
+// If you need to promote a user to director, do it manually via database or create a proper admin command
 
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update')->middleware('auth');
