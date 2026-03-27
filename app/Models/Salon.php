@@ -23,6 +23,11 @@ class Salon extends Model
         return $this->hasMany(User::class);
     }
 
+    public function clients()
+    {
+        return $this->hasMany(Client::class);
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);

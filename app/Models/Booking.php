@@ -65,7 +65,20 @@ class Booking extends Model
             return false;
         }
 
-        // 1. Check if specialist is working at this time (Schedules)
+        // 1. Check for Absences (Vacations/Sick leaves)
+        $hasAbsence = \App\Models\Absence::where('user_id', $specialistId)
+            ->where(function($query) use ($start, $end) {
+                // Absence overlaps with the requested booking period
+                $query->where('start_date', '<=', $end->format('Y-m-d'))
+                      ->where('end_date', '>=', $start->format('Y-m-d'));
+            })
+            ->exists();
+
+        if ($hasAbsence) {
+            return false; // Specialist is absent on this date
+        }
+
+        // 2. Check if specialist is working at this time (Schedules)
         $dayOfWeek = strtolower($start->format('l'));
         $schedule = \App\Models\Schedule::where('user_id', $specialistId)
             ->where('day_of_week', $dayOfWeek)

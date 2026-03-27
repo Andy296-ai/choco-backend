@@ -141,6 +141,12 @@
                 <p>Наши специалисты скоро добавят свои работы</p>
             </div>
         @endif
+        
+        @if($portfolioItems->hasPages())
+            <div style="margin-top: 40px; text-align: center;">
+                {{ $portfolioItems->links() }}
+            </div>
+        @endif
     </div>
 </main>
 @endsection

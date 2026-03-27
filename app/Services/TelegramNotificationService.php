@@ -16,9 +16,6 @@ class TelegramNotificationService
         $this->apiUrl = "https://api.telegram.org/bot{$this->botToken}";
     }
 
-    /**
-     * Отправить сообщение клиенту
-     */
     public function sendMessage($telegramId, $message)
     {
         if (empty($telegramId) || empty($this->botToken)) {
@@ -26,30 +23,8 @@ class TelegramNotificationService
             return false;
         }
 
-        try {
-            $response = Http::post("{$this->apiUrl}/sendMessage", [
-                'chat_id' => $telegramId,
-                'text' => $message,
-                'parse_mode' => 'HTML'
-            ]);
-
-            if ($response->successful()) {
-                return true;
-            }
-
-            Log::error('Telegram API error', [
-                'response' => $response->json(),
-                'telegram_id' => $telegramId
-            ]);
-
-            return false;
-        } catch (\Exception $e) {
-            Log::error('Telegram notification exception', [
-                'error' => $e->getMessage(),
-                'telegram_id' => $telegramId
-            ]);
-            return false;
-        }
+        \App\Jobs\SendTelegramNotification::dispatch($telegramId, $message);
+        return true;
     }
 
     /**

@@ -11,6 +11,11 @@
             --gold: #D4AF37;
             --cream: #FFF8E1;
             --white: #FFFFFF;
+            --text-light: #795548;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -31,6 +36,11 @@
             width: 100%;
             max-width: 400px;
             text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
         }
 
         .login-card h1 {
@@ -58,6 +68,13 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-family: inherit;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--gold);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
         }
 
         .btn-login {
@@ -70,7 +87,8 @@
             font-weight: 600;
             text-transform: uppercase;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, transform 0.1s ease;
+            margin-top: 10px;
         }
 
         .btn-login:hover {
@@ -78,18 +96,31 @@
             color: var(--chocolate);
         }
 
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
         .error {
             color: #d32f2f;
             font-size: 14px;
             margin-bottom: 20px;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 5px;
         }
 
         .back-home {
-            display: block;
-            margin-top: 20px;
+            display: inline-block;
+            margin-top: 25px;
             color: var(--text-light);
             text-decoration: none;
             font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-home:hover {
+            color: var(--chocolate);
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -102,12 +133,12 @@
         <form action="{{ route('login') }}" method="POST">
             @csrf
             <div class="form-group">
-                <label>Логин</label>
-                <input type="text" name="login" required autofocus>
+                <label for="loginInput">Логин</label>
+                <input type="text" id="loginInput" name="login" value="{{ old('login') }}" required autofocus autocomplete="username">
             </div>
             <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" name="password" required>
+                <label for="passwordInput">Пароль</label>
+                <input type="password" id="passwordInput" name="password" required autocomplete="current-password">
             </div>
             <button type="submit" class="btn-login">Войти</button>
         </form>

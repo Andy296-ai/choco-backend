@@ -1,105 +1,9 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Панель Администратора — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+@extends('layouts.admin')
+
+@section('title', 'Панель Администратора — Шоколад')
+
+@section('styles')
     <style>
-        /* Shared Modal CSS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(62, 39, 35, 0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-container { background: #FFFFFF; width: 90%; max-width: 500px; border-radius: 15px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: translateY(20px); transition: all 0.3s ease; border: 1px solid rgba(212, 175, 55, 0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-family: 'Playfair Display', serif; color: #3E2723; margin: 0; }
-        .close-modal { background: none; border: none; font-size: 24px; color: #888; cursor: pointer; }
-        .modal-form .form-group { margin-bottom: 15px; }
-        .modal-form label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #3E2723; }
-        .modal-form input, .modal-form select, .modal-form textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { background: #f5f5f5; color: #3E2723; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-confirm { background: #D4AF37; color: #3E2723; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
-
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
-
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
-
-        .nav-item {
-            margin-bottom: 15px;
-        }
-
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item a:hover, .nav-item a.active {
-            background-color: rgba(255,255,255,0.1);
-            color: var(--gold);
-        }
-
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid var(--chocolate);
-            color: var(--chocolate);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
         .calendar-container {
             background: var(--white);
             padding: 25px;
@@ -161,150 +65,138 @@
         .status-cancelled { background: #ffebee; color: #c62828; }
         .status-completed { background: #e3f2fd; color: #1565c0; }
     </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('admin.dashboard') }}" class="active">Записи</a></li>
-            <li class="nav-item"><a href="{{ route('admin.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('admin.masters') }}">Мастера</a></li>
-            <li class="nav-item"><a href="{{ route('admin.services') }}">Услуги</a></li>
-        </ul>
-    </div>
-
-    <div class="main-content">
-        <div class="header">
-            <h1>Панель Администратора</h1>
-            <div class="user-info">
-                <span>{{ auth()->user()->name }}</span>
-                <form action="{{ route('logout') }}" method="POST" style="display:inline;">
-                    @csrf
-                    <button type="submit" class="logout-btn">Выйти</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Поиск и фильтры -->
-        <div class="calendar-container" style="margin-bottom: 20px;">
-            <form method="GET" action="{{ route('admin.dashboard') }}" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; margin-bottom: 5px;">Поиск</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Клиент, услуга, мастер..." style="width: 100%; padding: 10px;">
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; margin-bottom: 5px;">Статус</label>
-                    <select name="status" style="width: 100%; padding: 10px;">
-                        <option value="">Все</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Ожидает</option>
-                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Подтверждено</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Завершено</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Отменено</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; margin-bottom: 5px;">С</label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" style="width: 100%; padding: 10px;">
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-size: 12px; margin-bottom: 5px;">По</label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" style="width: 100%; padding: 10px;">
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <button type="submit" style="padding: 10px 20px; background: var(--gold); border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Найти</button>
-                    <a href="{{ route('admin.dashboard') }}" style="padding: 10px 15px; background: #f5f5f5; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; color: var(--chocolate); display: inline-block;">Сброс</a>
-                </div>
-            </form>
-        </div>
-
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <h3>Записи — {{ $salon->name ?? 'Салон не назначен' }}</h3>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="logout-btn" id="view-toggle" style="background: var(--chocolate); color: white; border: none;">📅 Календарь</button>
-                    <button class="logout-btn" style="background: var(--gold); border: none;" data-modal="modal-booking-add">+ Новая запись</button>
-                </div>
-            </div>
-            
-            <!-- Календарный вид (скрыт по умолчанию) -->
-            <div id="calendar-view" style="display: none;">
-                <div id="calendar-container" style="min-height: 500px;"></div>
-            </div>
-            
-            <!-- Список записей -->
-            <div id="list-view" class="appointment-list">
-                @forelse($bookings as $booking)
-                <div class="appointment-item">
-                    <div class="appointment-time">{{ $booking->start_time->format('H:i') }}</div>
-                    <div class="appointment-info">
-                        <h4>{{ $booking->client->name ?? 'Гость' }}</h4>
-                        <p>{{ $booking->service->name ?? 'Услуга удалена' }} — Мастер: {{ $booking->specialist->name ?? 'Не назначен' }}</p>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        @php
-                            $statusClass = match($booking->status) {
-                                'confirmed' => 'status-confirmed',
-                                'pending' => 'status-pending',
-                                'cancelled' => 'status-cancelled',
-                                'completed' => 'status-completed',
-                                default => ''
-                            };
-                            $statusLabel = match($booking->status) {
-                                'confirmed' => 'Подтверждено',
-                                'pending' => 'Ожидает',
-                                'cancelled' => 'Отменено',
-                                'completed' => 'Завершено',
-                                default => $booking->status
-                            };
-                        @endphp
-                        <span class="status-badge {{ $statusClass }}" 
-                              data-modal="modal-booking-edit" 
-                              data-edit="{{ json_encode($booking) }}"
-                              data-action="{{ route('admin.bookings.update', $booking->id) }}">
-                            {{ $statusLabel }}
-                        </span>
-                        <form action="{{ route('admin.bookings.delete', $booking->id) }}" method="POST" class="ajax-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" style="background:none; border:none; color: #f44336; cursor:pointer;" onclick="return confirm('Удалить запись?')">×</button>
-                        </form>
-                    </div>
-                </div>
-                @empty
-                <div class="appointment-item">
-                    <p style="color: #888; text-align: center; width: 100%;">На сегодня записей нет</p>
-                </div>
-                @endforelse
-                
-                <!-- Пагинация -->
-                @if($bookings->hasPages())
-                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                    @if($bookings->onFirstPage())
-                        <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px; color: #999;">← Назад</span>
-                    @else
-                        <a href="{{ $bookings->previousPageUrl() }}" style="padding: 8px 15px; background: var(--gold); border-radius: 5px; color: var(--chocolate); text-decoration: none;">← Назад</a>
-                    @endif
-                    
-                    <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px;">
-                        Страница {{ $bookings->currentPage() }} из {{ $bookings->lastPage() }}
-                    </span>
-                    
-                    @if($bookings->hasMorePages())
-                        <a href="{{ $bookings->nextPageUrl() }}" style="padding: 8px 15px; background: var(--gold); border-radius: 5px; color: var(--chocolate); text-decoration: none;">Вперёд →</a>
-                    @else
-                        <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px; color: #999;">Вперёд →</span>
-                    @endif
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
-    
     <!-- Подключение FullCalendar -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/ru.js'></script>
+@endsection
 
+@section('content')
+    <div class="header">
+        <h1>Панель Администратора</h1>
+        <div class="user-info">
+            <span>{{ auth()->user()->name }}</span>
+            <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+                @csrf
+                <button type="submit" class="logout-btn">Выйти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Поиск и фильтры -->
+    <div class="calendar-container" style="margin-bottom: 20px;">
+        <form method="GET" action="{{ route('admin.dashboard') }}" style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 15px; align-items: flex-end;">
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--chocolate); margin-bottom: 8px; display: block;">Поиск</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Клиент, услуга, мастер..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none;">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--chocolate); margin-bottom: 8px; display: block;">Статус</label>
+                <select name="status" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none; background: white;">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Ожидает</option>
+                    <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Подтверждена</option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Выполнена</option>
+                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Отменена</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--chocolate); margin-bottom: 8px; display: block;">С</label>
+                <input type="date" name="date_from" value="{{ request('date_from') }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none;">
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--chocolate); margin-bottom: 8px; display: block;">По</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" style="padding: 12px 25px; background: var(--gold); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--chocolate); transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">Найти</button>
+                <a href="{{ route('admin.dashboard') }}" style="padding: 12px 20px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-decoration: none; color: #555; display: inline-block; font-weight: 600; transition: background 0.3s ease;">Сброс</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h3>Записи — {{ $salon->name ?? 'Салон не назначен' }}</h3>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="logout-btn" id="view-toggle" style="background: var(--chocolate); color: white; border: none;">📅 Календарь</button>
+                <button class="logout-btn" style="background: var(--gold); border: none;" data-modal="modal-booking-add">+ Новая запись</button>
+            </div>
+        </div>
+        
+        <!-- Календарный вид (скрыт по умолчанию) -->
+        <div id="calendar-view" style="display: none;">
+            <div id="calendar-container" style="min-height: 500px;"></div>
+        </div>
+        
+        <!-- Список записей -->
+        <div id="list-view" class="appointment-list">
+            @forelse($bookings as $booking)
+            <div class="appointment-item">
+                <div class="appointment-time">{{ $booking->start_time->format('H:i') }}</div>
+                <div class="appointment-info">
+                    <h4>{{ $booking->client->name ?? 'Гость' }}</h4>
+                    <p>{{ $booking->service->name ?? 'Услуга удалена' }} — Мастер: {{ $booking->specialist->name ?? 'Не назначен' }}</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    @php
+                        $statusClass = match($booking->status) {
+                            'confirmed' => 'status-confirmed',
+                            'pending' => 'status-pending',
+                            'cancelled' => 'status-cancelled',
+                            'completed' => 'status-completed',
+                            default => ''
+                        };
+                        $statusLabel = match($booking->status) {
+                            'confirmed' => 'Подтверждено',
+                            'pending' => 'Ожидает',
+                            'cancelled' => 'Отменено',
+                            'completed' => 'Завершено',
+                            default => $booking->status
+                        };
+                    @endphp
+                    <span class="status-badge {{ $statusClass }}" 
+                          data-modal="modal-booking-edit" 
+                          data-edit="{{ json_encode($booking) }}"
+                          data-action="{{ route('admin.bookings.update', $booking->id) }}">
+                        {{ $statusLabel }}
+                    </span>
+                    <form action="{{ route('admin.bookings.delete', $booking->id) }}" method="POST" class="ajax-form">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" style="background:none; border:none; color: #f44336; cursor:pointer;" onclick="return confirm('Удалить запись?')">×</button>
+                    </form>
+                </div>
+            </div>
+            @empty
+            <div class="appointment-item">
+                <p style="color: #888; text-align: center; width: 100%;">На сегодня записей нет</p>
+            </div>
+            @endforelse
+            
+            <!-- Пагинация -->
+            @if($bookings->hasPages())
+            <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                @if($bookings->onFirstPage())
+                    <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px; color: #999;">← Назад</span>
+                @else
+                    <a href="{{ $bookings->previousPageUrl() }}" style="padding: 8px 15px; background: var(--gold); border-radius: 5px; color: var(--chocolate); text-decoration: none;">← Назад</a>
+                @endif
+                
+                <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px;">
+                    Страница {{ $bookings->currentPage() }} из {{ $bookings->lastPage() }}
+                </span>
+                
+                @if($bookings->hasMorePages())
+                    <a href="{{ $bookings->nextPageUrl() }}" style="padding: 8px 15px; background: var(--gold); border-radius: 5px; color: var(--chocolate); text-decoration: none;">Вперёд →</a>
+                @else
+                    <span style="padding: 8px 15px; background: #f5f5f5; border-radius: 5px; color: #999;">Вперёд →</span>
+                @endif
+            </div>
+            @endif
+        </div>
+    </div>
+@endsection
+
+@section('modals')
     <!-- Modals -->
     <div class="modal-overlay" id="modal-booking-add">
         <div class="modal-container">
@@ -402,7 +294,11 @@
             </form>
         </div>
     </div>
+@endsection
 
+@section('scripts')
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/ru.js'></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('[data-modal]').forEach(btn => {
@@ -431,28 +327,6 @@
                 });
             });
 
-            document.querySelectorAll('.close-modal, .btn-cancel').forEach(btn => {
-                btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active'));
-            });
-
-            document.querySelectorAll('.ajax-form').forEach(form => {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const btn = form.querySelector('button[type="submit"]');
-                    btn.disabled = true;
-                    try {
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: new FormData(form),
-                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-                        });
-                        if (response.ok) location.reload();
-                        else alert('Ошибка при сохранении');
-                    } catch (e) { alert('Ошибка сети'); }
-                    btn.disabled = false;
-                });
-            });
-            
             // Переключение вида: список/календарь
             const viewToggle = document.getElementById('view-toggle');
             const calendarView = document.getElementById('calendar-view');
@@ -512,15 +386,14 @@
                     ],
                     eventClick: function(info) {
                         const bookingId = info.event.extendedProps.bookingId;
-                        // Можно открыть модальное окно редактирования
                         alert('Запись #' + bookingId);
                     }
                 });
                 
                 calendar.render();
-                calendarEl.calendar = calendar; // Сохраняем ссылку
+                calendarEl.calendar = calendar;
             }
         });
     </script>
-</body>
-</html>
+@endsection
+

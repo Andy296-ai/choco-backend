@@ -132,7 +132,7 @@ class AuthController extends Controller
         $bookings = $client->bookings()
             ->with(['service', 'salon', 'specialist'])
             ->orderBy('start_time', 'desc')
-            ->get();
+            ->paginate(10);
 
         return view('profile', [
             'user' => $client, // Keep variable name 'user' for blade compatibility

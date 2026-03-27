@@ -15,6 +15,10 @@
             --sidebar-width: 250px;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #f5f5f5;
@@ -170,6 +174,8 @@
             <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
             <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
             <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
+            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
+            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
             <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
         </ul>
 

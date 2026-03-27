@@ -8,8 +8,10 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\Booking;
 use App\Models\Service;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Schedule;
 
 class DirectorController extends Controller
 {
@@ -30,11 +32,36 @@ class DirectorController extends Controller
         $bookingsCount = $completedBookings->count();
         $avgCheck = $bookingsCount > 0 ? $revenue / $bookingsCount : 0;
 
+        // Calculate real occupancy
+        $totalWorkingMinutes = 0;
+        $specialists = User::where('role', User::ROLE_SPECIALIST)->with('schedules')->get();
+        foreach ($specialists as $specialist) {
+            $schedules = $specialist->schedules->where('is_working', true);
+            if ($schedules->isEmpty()) {
+                // Default 11 hours (9-20) if no schedule
+                $totalWorkingMinutes += 11 * 60 * 30; // 30 days
+            } else {
+                foreach ($schedules as $s) {
+                    $start = Carbon::parse($s->start_time);
+                    $end = Carbon::parse($s->end_time);
+                    $totalWorkingMinutes += $start->diffInMinutes($end) * 4; // Approx 4 weeks in month
+                }
+            }
+        }
+
+        $totalBookedMinutes = Booking::whereIn('status', ['confirmed', 'completed'])
+            ->whereMonth('start_time', now()->month)
+            ->whereYear('start_time', now()->year)
+            ->join('services', 'bookings.service_id', '=', 'services.id')
+            ->sum('services.duration_minutes');
+
+        $occupancyRate = $totalWorkingMinutes > 0 ? ($totalBookedMinutes / $totalWorkingMinutes) * 100 : 0;
+
         $stats = [
             'revenue_month' => number_format($revenue, 0, '.', ' ') . ' ₽',
             'new_clients' => $clientsCount,
             'avg_check' => number_format($avgCheck, 0, '.', ' ') . ' ₽',
-            'occupancy' => '78%', // Mock occupancy for now
+            'occupancy' => round(min($occupancyRate, 100)) . '%',
         ];
 
         // Monthly revenue for dashboard chart
@@ -85,7 +112,7 @@ class DirectorController extends Controller
             $query->where('salon_id', $request->salon_id);
         }
         
-        $recentBookings = $query->orderBy('start_time', 'desc')->paginate(20);
+        $recentBookings = $query->orderBy('start_time', 'desc')->paginate(10);
 
         return view('panels.director.dashboard', compact('stats', 'salonsCount', 'adminsCount', 'mastersCount', 'recentBookings', 'monthlyRevenue'));
     }
@@ -105,6 +132,20 @@ class DirectorController extends Controller
         $validated['password'] = bcrypt($validated['password']);
         $user = User::create($validated);
 
+        if ($user->role === User::ROLE_SPECIALIST) {
+            $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            foreach ($days as $day) {
+                Schedule::create([
+                    'user_id' => $user->id,
+                    'salon_id' => $user->salon_id,
+                    'day_of_week' => $day,
+                    'is_working' => false,
+                    'start_time' => '09:00',
+                    'end_time' => '18:00',
+                ]);
+            }
+        }
+
         return response()->json(['message' => 'Сотрудник успешно добавлен', 'user' => $user]);
     }
 
@@ -117,7 +158,14 @@ class DirectorController extends Controller
             'phone' => 'nullable|string',
             'role' => 'required|in:admin,specialist',
             'salon_id' => 'required|exists:salons,id',
+            'password' => 'nullable|string|min:6',
         ]);
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
 
         $employee->update($validated);
 
@@ -132,36 +180,41 @@ class DirectorController extends Controller
 
     public function salons()
     {
-        $salons = Salon::with('contacts')->get();
+        $salons = Salon::with('contacts')->paginate(10);
         return view('panels.director.settings', compact('salons')); // Using settings as salon management for now
     }
 
     public function employees()
     {
-        $admins = User::where('role', User::ROLE_ADMIN)->get();
-        $masters = User::where('role', User::ROLE_SPECIALIST)->get();
+        $admins = User::where('role', User::ROLE_ADMIN)->paginate(10, ['*'], 'admins_page');
+        $masters = User::where('role', User::ROLE_SPECIALIST)->paginate(10, ['*'], 'masters_page');
         $salons = Salon::all();
         return view('panels.director.employees', compact('admins', 'masters', 'salons'));
     }
 
 
-    public function finance()
+    public function finance(Request $request)
     {
-        // 1. Summary Stats
+        // Parse date range from query params, default to current month
+        $startDate = $request->input('start_date') 
+            ? Carbon::parse($request->input('start_date'))->startOfDay() 
+            : now()->startOfMonth();
+        $endDate = $request->input('end_date') 
+            ? Carbon::parse($request->input('end_date'))->endOfDay() 
+            : now()->endOfDay();
+
+        // 1. Summary Stats — filtered by selected period
         $totalRevenue = Booking::where('bookings.status', 'completed')
+            ->whereBetween('bookings.start_time', [$startDate, $endDate])
             ->join('services', 'bookings.service_id', '=', 'services.id')
             ->sum('services.price');
 
-        $monthRevenue = Booking::where('bookings.status', 'completed')
-            ->whereMonth('bookings.start_time', now()->month)
-            ->whereYear('bookings.start_time', now()->year)
-            ->join('services', 'bookings.service_id', '=', 'services.id')
-            ->sum('services.price');
+        $monthRevenue = $totalRevenue; // same as total for the selected period
 
-        $expenses = $totalRevenue * 0.35; // Mock expenses as 35% of revenue
+        $expenses = $totalRevenue * 0.35;
         $profit = $totalRevenue - $expenses;
 
-        // 2. Revenue by Month (Last 6 months)
+        // 2. Revenue by Month (Last 6 months for the chart — always shown)
         $monthlyRevenue = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
@@ -177,11 +230,12 @@ class DirectorController extends Controller
             ];
         }
 
-        // 3. Revenue by Salon
+        // 3. Revenue by Salon — filtered by selected period
         $salonRevenue = Salon::get()
-            ->map(function($salon) {
+            ->map(function($salon) use ($startDate, $endDate) {
                 $revenue = Booking::where('salon_id', $salon->id)
                     ->where('status', 'completed')
+                    ->whereBetween('start_time', [$startDate, $endDate])
                     ->join('services', 'bookings.service_id', '=', 'services.id')
                     ->sum('services.price');
                 
@@ -191,17 +245,18 @@ class DirectorController extends Controller
                 ];
             });
 
-        // 4. Top Services
-        $topServices = Service::withCount(['bookings' => function($q) {
-                $q->where('status', 'completed');
-            }])
-            ->get()
-            ->map(function($service) {
-                $revenue = $service->bookings()->where('status', 'completed')->count() * $service->price;
+        // 4. Top Services — filtered by selected period
+        $topServices = Service::get()
+            ->map(function($service) use ($startDate, $endDate) {
+                $completedBookings = $service->bookings()
+                    ->where('status', 'completed')
+                    ->whereBetween('start_time', [$startDate, $endDate])
+                    ->count();
+                $revenue = $completedBookings * $service->price;
                 return [
                     'name' => $service->name,
                     'revenue' => $revenue,
-                    'count' => $service->bookings_count
+                    'count' => $completedBookings
                 ];
             })
             ->sortByDesc('revenue')
@@ -214,7 +269,9 @@ class DirectorController extends Controller
             'profit', 
             'monthlyRevenue', 
             'salonRevenue', 
-            'topServices'
+            'topServices',
+            'startDate',
+            'endDate'
         ));
     }
 

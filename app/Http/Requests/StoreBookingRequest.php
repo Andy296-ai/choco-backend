@@ -60,9 +60,15 @@ class StoreBookingRequest extends FormRequest
                         $validator->errors()->add('time', 'Нельзя записаться на прошедшее время.');
                     }
                     
-                    // Проверяем, что время в рабочее время (например, с 9 до 20)
+                    // Проверяем, что время в рабочее время (по умолчанию с 9:00 до 20:00)
                     $hour = (int) $dateTime->format('H');
-                    if ($hour < 9 || $hour >= 20) {
+                    $minute = (int) $dateTime->format('i');
+                    $timeInMinutes = ($hour * 60) + $minute;
+                    
+                    $workStartMinutes = 9 * 60; // 09:00
+                    $workEndMinutes = 20 * 60;  // 20:00
+                    
+                    if ($timeInMinutes < $workStartMinutes || $timeInMinutes >= $workEndMinutes) {
                         $validator->errors()->add('time', 'Запись возможна только с 9:00 до 20:00.');
                     }
                 } catch (\Exception $e) {

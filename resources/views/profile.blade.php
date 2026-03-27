@@ -152,8 +152,57 @@
         color: var(--gold);
     }
 
+    .dashboard-grid-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 40px;
+    }
+
     @media (max-width: 768px) {
-        .profile-container { grid-template-columns: 1fr; }
+        .profile-container {
+            grid-template-columns: 1fr;
+            padding: 0 15px;
+        }
+
+        .page-header {
+            padding: 100px 15px 40px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+        }
+
+        .dashboard-container {
+            margin: 20px 10px;
+            padding: 20px 15px;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+
+        .dashboard-header h2 {
+            font-size: 20px;
+        }
+
+        .booking-item {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .booking-status {
+            text-align: left !important;
+        }
+
+        .auth-card {
+            padding: 25px 20px;
+        }
+
+        .dashboard-grid-layout {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 @endsection
@@ -245,7 +294,7 @@
                 </div>
             @endif
 
-            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 40px;">
+            <div class="dashboard-grid-layout">
                 <div class="booking-history">
                     <h3>Мои записи</h3>
                     @forelse($bookings as $booking)
@@ -273,6 +322,10 @@
                     @empty
                         <p style="color: #888; padding: 20px; border: 1px dashed #ddd; text-align: center; border-radius: 5px;">У вас пока нет записей</p>
                     @endforelse
+                    
+                    <div style="margin-top: 20px;">
+                        {{ $bookings->links() }}
+                    </div>
                 </div>
 
                 <div class="profile-edit">

@@ -238,22 +238,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Анна Иванова</td>
-                        <td>+7 (900) 111-22-33</td>
-                        <td>Сложное окрашивание</td>
-                        <td>26.01.2026</td>
-                        <td><a href="#" style="color: var(--gold);">Посмотреть</a></td>
-                    </tr>
-                    <tr>
-                        <td>Светлана К.</td>
-                        <td>+7 (900) 555-66-77</td>
-                        <td>Стрижка женская</td>
-                        <td>26.01.2026</td>
-                        <td><a href="#" style="color: var(--gold);">Посмотреть</a></td>
-                    </tr>
+                    @forelse($clients as $data)
+                        <tr>
+                            <td>{{ $data['client']->name }}</td>
+                            <td>{{ $data['client']->phone ?? 'Не указан' }}</td>
+                            <td>{{ $data['last_booking']->service->name ?? 'Неизвестно' }}</td>
+                            <td>{{ $data['last_booking']->start_time->format('d.m.Y H:i') }}</td>
+                            <td><span style="color: #888;">{{ $data['client']->telegram_username ? '@'.$data['client']->telegram_username : '-' }}</span></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #888; padding: 20px;">У вас пока нет записанных клиентов</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
+            <div style="margin-top: 20px;">
+                {{ $clients->links() }}
+            </div>
         </div>
     </div>
 

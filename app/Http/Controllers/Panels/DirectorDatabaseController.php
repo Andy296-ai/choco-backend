@@ -32,6 +32,10 @@ class DirectorDatabaseController extends Controller
                 'password_resets',
                 'failed_jobs',
                 'personal_access_tokens',
+                'users',
+                'clients',
+                'sessions',
+                'cache',
             ]);
         });
 

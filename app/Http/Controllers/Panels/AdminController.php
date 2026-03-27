@@ -7,12 +7,8 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Service;
-use App\Models\Salon;
-use App\Services\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -24,7 +20,6 @@ class AdminController extends Controller
         $query = Booking::where('salon_id', $salon->id)
             ->with(['client', 'service', 'specialist']);
         
-        // Поиск
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -41,12 +36,10 @@ class AdminController extends Controller
             });
         }
         
-        // Фильтр по статусу
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
         }
         
-        // Фильтр по дате
         if ($request->has('date_from') && $request->date_from) {
             $query->whereDate('start_time', '>=', $request->date_from);
         }
@@ -54,7 +47,6 @@ class AdminController extends Controller
             $query->whereDate('start_time', '<=', $request->date_to);
         }
         
-        // Фильтр по специалисту
         if ($request->has('specialist_id') && $request->specialist_id) {
             $query->where('specialist_id', $request->specialist_id);
         }
@@ -70,166 +62,13 @@ class AdminController extends Controller
         return view('panels.admin.dashboard', compact('salon', 'bookings', 'clients', 'services', 'masters'));
     }
 
-    public function storeBooking(Request $request)
-    {
-        $user = Auth::user();
-        $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'service_id' => 'required|exists:services,id',
-            'specialist_id' => 'required|exists:users,id',
-            'start_time' => 'required|date',
-            'status' => 'required|string|in:pending,confirmed,completed,cancelled',
-        ]);
-
-        $service = Service::findOrFail($validated['service_id']);
-        $startTime = Carbon::parse($validated['start_time']);
-        $endTime = (clone $startTime)->addMinutes($service->duration_minutes);
-
-        // Проверяем, что специалист работает в салоне админа
-        $specialist = User::where('id', $validated['specialist_id'])
-            ->where('role', User::ROLE_SPECIALIST)
-            ->where('salon_id', $user->salon_id)
-            ->first();
-
-        if (!$specialist) {
-            return response()->json(['error' => 'Специалист не найден или не работает в вашем салоне'], 422);
-        }
-
-        // Проверяем доступность специалиста (если статус не cancelled)
-        if ($validated['status'] !== 'cancelled') {
-            if (!Booking::isSpecialistAvailable($validated['specialist_id'], $startTime, $endTime)) {
-                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
-            }
-        }
-
-        try {
-            \DB::beginTransaction();
-
-            $booking = Booking::create([
-                'client_id' => $validated['client_id'],
-                'salon_id' => $user->salon_id,
-                'service_id' => $validated['service_id'],
-                'specialist_id' => $validated['specialist_id'],
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'status' => $validated['status'],
-            ]);
-
-            \DB::commit();
-
-            // Отправка уведомления
-            try {
-                $telegramService = app(TelegramNotificationService::class);
-                $telegramService->notifyBookingCreated($booking->load(['client', 'service', 'specialist', 'salon']));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
-            }
-
-            return response()->json(['message' => 'Запись создана', 'booking' => $booking]);
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Failed to create booking', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Ошибка при создании записи'], 500);
-        }
-    }
-
-    public function updateBooking(Request $request, Booking $booking)
-    {
-        $user = Auth::user();
-        
-        // Проверяем, что админ работает в том же салоне, что и бронирование
-        if ($user->salon_id && $booking->salon_id !== $user->salon_id) {
-            return response()->json(['error' => 'Нет доступа к этой записи'], 403);
-        }
-
-        $validated = $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'specialist_id' => 'required|exists:users,id',
-            'start_time' => 'required|date',
-            'status' => 'required|string|in:pending,confirmed,completed,cancelled',
-        ]);
-
-        $service = Service::findOrFail($validated['service_id']);
-        $startTime = Carbon::parse($validated['start_time']);
-        $endTime = (clone $startTime)->addMinutes($service->duration_minutes);
-
-        // Проверяем, что время не в прошлом (если статус не cancelled)
-        if ($validated['status'] !== 'cancelled' && $startTime->isPast()) {
-            return response()->json(['error' => 'Нельзя установить прошедшее время для активной записи'], 422);
-        }
-
-        // Проверяем доступность специалиста на новое время (если статус не cancelled)
-        if ($validated['status'] !== 'cancelled') {
-            // Проверяем конфликты, исключая текущее бронирование
-            $hasConflict = Booking::where('specialist_id', $validated['specialist_id'])
-                ->where('id', '!=', $booking->id)
-                ->where('status', '!=', 'cancelled')
-                ->where(function($query) use ($startTime, $endTime) {
-                    $query->where(function($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '>=', $startTime)->where('start_time', '<', $endTime);
-                    })->orWhere(function($q) use ($startTime, $endTime) {
-                        $q->where('end_time', '>', $startTime)->where('end_time', '<=', $endTime);
-                    })->orWhere(function($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<=', $startTime)->where('end_time', '>=', $endTime);
-                    });
-                })
-                ->exists();
-
-            if ($hasConflict) {
-                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
-            }
-
-            // Проверяем доступность специалиста через метод модели (исключаем текущее бронирование)
-            if (!Booking::isSpecialistAvailable($validated['specialist_id'], $startTime, $endTime, $booking->id)) {
-                return response()->json(['error' => 'Выбранный мастер занят на это время'], 422);
-            }
-        }
-
-        $oldStatus = $booking->status;
-        
-        try {
-            \DB::beginTransaction();
-
-            $booking->update([
-                'service_id' => $validated['service_id'],
-                'specialist_id' => $validated['specialist_id'],
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'status' => $validated['status'],
-            ]);
-
-            \DB::commit();
-
-            // Отправка уведомления если статус изменился
-            if ($oldStatus !== $validated['status']) {
-                try {
-                    $telegramService = app(TelegramNotificationService::class);
-                    $telegramService->notifyBookingStatusChanged($booking->load(['client', 'service', 'specialist', 'salon']));
-                } catch (\Exception $e) {
-                    \Log::error('Failed to send Telegram notification', ['error' => $e->getMessage()]);
-                }
-            }
-
-            return response()->json(['message' => 'Запись обновлена', 'booking' => $booking]);
-        } catch (\Exception $e) {
-            \DB::rollBack();
-            \Log::error('Failed to update booking', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Ошибка при обновлении записи'], 500);
-        }
-    }
-
-    public function deleteBooking(Booking $booking)
-    {
-        $booking->delete();
-        return response()->json(['message' => 'Запись удалена']);
-    }
-
     public function clients(Request $request)
     {
-        $query = Client::query();
+        $salon = Auth::user()->salon;
+        $query = $salon ? $salon->clients() : collect();
         
         // Поиск
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -238,59 +77,73 @@ class AdminController extends Controller
             });
         }
         
-        $clients = $query->orderBy('name')->paginate(20);
+        // Фильтр по статусу
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        $clients = $query->orderBy('name')->paginate(10);
         return view('panels.admin.clients', compact('clients'));
     }
 
-    public function masters()
+    public function masters(Request $request)
     {
         $salon = Auth::user()->salon;
-        $masters = $salon ? $salon->users()->where('role', User::ROLE_SPECIALIST)->get() : collect();
+        $query = $salon ? $salon->users()->where('role', User::ROLE_SPECIALIST) : collect();
+        
+        // Поиск
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        
+        // Фильтр по статусу
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+        
+        $masters = $query->paginate(10);
         return view('panels.admin.masters', compact('masters'));
     }
 
-    public function services()
+    public function services(Request $request)
     {
-        $services = Service::all();
+        $query = Service::query();
+        
+        // Поиск
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Фильтр по цене
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+        
+        // Фильтр по длительности
+        if ($request->filled('duration_min')) {
+            $query->where('duration_minutes', '>=', $request->duration_min);
+        }
+        if ($request->filled('duration_max')) {
+            $query->where('duration_minutes', '<=', $request->duration_max);
+        }
+        
+        $services = $query->paginate(9);
         return view('panels.admin.services', compact('services'));
     }
-
-    public function storeService(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'duration_minutes' => 'required|integer|min:1',
-        ]);
-
-        $service = Service::create($validated);
-
-        return response()->json(['message' => 'Услуга добавлена', 'service' => $service]);
-    }
-
-    public function updateService(Request $request, Service $service)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'duration_minutes' => 'required|integer|min:1',
-        ]);
-
-        $service->update($validated);
-
-        return response()->json(['message' => 'Услуга обновлена', 'service' => $service]);
-    }
-
-    public function deleteService(Service $service)
-    {
-        if ($service->bookings()->exists()) {
-            return response()->json(['message' => 'Нельзя удалить услугу, на которую есть записи'], 422);
-        }
-
-        $service->delete();
-        return response()->json(['message' => 'Услуга удалена']);
-    }
-
 }

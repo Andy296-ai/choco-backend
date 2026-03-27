@@ -15,6 +15,10 @@
             --sidebar-width: 250px;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #f5f5f5;
@@ -185,6 +189,8 @@
             <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
             <li class="nav-item"><a href="{{ route('director.finance') }}" class="active">Финансы</a></li>
             <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
+            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
+            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
             <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
         </ul>
     </div>
@@ -195,16 +201,25 @@
                 <h1 style="margin: 0; color: var(--chocolate); font-family: 'Playfair Display', serif;">Финансовая аналитика</h1>
                 <p style="color: #888; margin-top: 5px;">Обзор доходов и эффективности сети</p>
             </div>
-            <div style="background: var(--chocolate); color: var(--white); padding: 10px 20px; border-radius: 8px; font-size: 14px;">
-                Период: {{ now()->startOfMonth()->format('d.m') }} - {{ now()->format('d.m.Y') }}
-            </div>
+            <form method="GET" action="{{ route('director.finance') }}" style="display: flex; align-items: center; gap: 10px;">
+                <label style="color: #888; font-size: 13px;">С</label>
+                <input type="date" name="start_date" value="{{ $startDate->format('Y-m-d') }}" 
+                       style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--chocolate);">
+                <label style="color: #888; font-size: 13px;">По</label>
+                <input type="date" name="end_date" value="{{ $endDate->format('Y-m-d') }}" 
+                       style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--chocolate);">
+                <button type="submit" style="background: var(--chocolate); color: var(--white); border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: opacity 0.2s;">
+                    Применить
+                </button>
+            </form>
         </div>
 
         <div class="content-card full-width">
             <div class="finance-summary">
                 <div class="summary-item">
-                    <h4>Выручка за месяц</h4>
+                    <h4>Выручка за период</h4>
                     <div class="amount">{{ number_format($monthRevenue, 0, '.', ' ') }} ₽</div>
+                    <p style="font-size: 12px; color: #888; margin: 5px 0 0;">{{ $startDate->format('d.m.Y') }} — {{ $endDate->format('d.m.Y') }}</p>
                 </div>
                 <div class="summary-item">
                     <h4>Общая выручка</h4>

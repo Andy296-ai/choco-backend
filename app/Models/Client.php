@@ -21,6 +21,7 @@ class Client extends Authenticatable
         'telegram_first_name',
         'telegram_last_name',
         'telegram_photo_url',
+        'salon_id',
     ];
 
     protected $hidden = [
@@ -106,5 +107,10 @@ class Client extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function salon()
+    {
+        return $this->belongsTo(Salon::class);
     }
 }

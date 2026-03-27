@@ -17,14 +17,14 @@ Route::get('/about', function () {
 })->name('about');
 
 Route::get('/contacts', function () {
-    $salons = \App\Models\Salon::all();
+    $salons = \App\Models\Salon::paginate(10);
     return view('contacts', compact('salons'));
 })->name('contacts');
 
 Route::get('/gallery', function () {
     $portfolioItems = \App\Models\PortfolioItem::with('user')
         ->orderBy('created_at', 'desc')
-        ->get();
+        ->paginate(10);
     return view('gallery', compact('portfolioItems'));
 })->name('gallery');
 
@@ -33,7 +33,7 @@ Route::get('/booking', function () {
 })->name('booking');
 
 Route::post('/booking', [App\Http\Controllers\BookingController::class, 'store'])->name('booking.store');
-Route::post('/booking/{booking}/cancel', [App\Http\Controllers\BookingController::class, 'cancel'])->name('booking.cancel')->middleware('auth');
+Route::post('/booking/{booking}/cancel', [App\Http\Controllers\BookingController::class, 'cancel'])->name('booking.cancel')->middleware('auth:client');
 
 Route::post('/client/logout', [LoginController::class, 'clientLogout'])->name('client.logout');
 
@@ -66,22 +66,39 @@ Route::middleware(['auth', 'role:director'])->prefix('director')->name('director
     Route::post('/salons', [App\Http\Controllers\Panels\DirectorController::class, 'storeSalon'])->name('salons.store');
     Route::patch('/salons/{salon}', [App\Http\Controllers\Panels\DirectorController::class, 'updateSalon'])->name('salons.update');
     Route::delete('/salons/{salon}', [App\Http\Controllers\Panels\DirectorController::class, 'deleteSalon'])->name('salons.delete');
+
+    // Admin pages accessible to Director
+    Route::get('/clients', [App\Http\Controllers\Panels\AdminController::class, 'clients'])->name('clients');
+    Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
+    Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
+    
+    Route::get('/services', [App\Http\Controllers\Panels\AdminController::class, 'services'])->name('services');
+    Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');
+    Route::patch('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'updateService'])->name('services.update');
+    Route::delete('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'deleteService'])->name('services.delete');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [App\Http\Controllers\Panels\AdminController::class, 'dashboard'])->name('dashboard');
     
     // Booking CRUD
-    Route::post('/bookings', [App\Http\Controllers\Panels\AdminController::class, 'storeBooking'])->name('bookings.store');
-    Route::patch('/bookings/{booking}', [App\Http\Controllers\Panels\AdminController::class, 'updateBooking'])->name('bookings.update');
-    Route::delete('/bookings/{booking}', [App\Http\Controllers\Panels\AdminController::class, 'deleteBooking'])->name('bookings.delete');
+    Route::post('/bookings', [App\Http\Controllers\Api\AdminApiController::class, 'storeBooking'])->name('bookings.store');
+    Route::patch('/bookings/{booking}', [App\Http\Controllers\Api\AdminApiController::class, 'updateBooking'])->name('bookings.update');
+    Route::delete('/bookings/{booking}', [App\Http\Controllers\Api\AdminApiController::class, 'deleteBooking'])->name('bookings.delete');
 
     Route::get('/clients', [App\Http\Controllers\Panels\AdminController::class, 'clients'])->name('clients');
+    Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
+    Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
+    
     Route::get('/masters', [App\Http\Controllers\Panels\AdminController::class, 'masters'])->name('masters');
+    Route::get('/masters/{master}/schedule', [App\Http\Controllers\Api\AdminApiController::class, 'getSchedule'])->name('masters.schedule');
+    Route::post('/masters/{master}/schedule', [App\Http\Controllers\Api\AdminApiController::class, 'updateSchedule'])->name('masters.schedule.update');
+    Route::post('/masters/{master}/absence', [App\Http\Controllers\Api\AdminApiController::class, 'storeAbsence'])->name('masters.absence.store');
+    
     Route::get('/services', [App\Http\Controllers\Panels\AdminController::class, 'services'])->name('services');
-    Route::post('/services', [App\Http\Controllers\Panels\AdminController::class, 'storeService'])->name('services.store');
-    Route::patch('/services/{service}', [App\Http\Controllers\Panels\AdminController::class, 'updateService'])->name('services.update');
-    Route::delete('/services/{service}', [App\Http\Controllers\Panels\AdminController::class, 'deleteService'])->name('services.delete');
+    Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');
+    Route::patch('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'updateService'])->name('services.update');
+    Route::delete('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'deleteService'])->name('services.delete');
 });
 
 Route::middleware(['auth', 'role:specialist'])->prefix('specialist')->name('specialist.')->group(function () {
@@ -112,6 +129,6 @@ Route::prefix('api')->name('api.')->group(function () {
 // If you need to promote a user to director, do it manually via database or create a proper admin command
 
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update')->middleware('auth');
+Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update')->middleware('auth:client');
 
 

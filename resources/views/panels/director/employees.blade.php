@@ -7,20 +7,7 @@
     <title>Сотрудники — Шоколад</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* Modals CSS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(62, 39, 35, 0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-container { background: #FFFFFF; width: 90%; max-width: 500px; border-radius: 15px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: translateY(20px); transition: all 0.3s ease; border: 1px solid rgba(212, 175, 55, 0.2); }
-        .modal-overlay.active .modal-container { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { font-family: 'Playfair Display', serif; color: #3E2723; margin: 0; }
-        .close-modal { background: none; border: none; font-size: 24px; color: #888; cursor: pointer; }
-        .modal-form .form-group { margin-bottom: 15px; }
-        .modal-form label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #3E2723; }
-        .modal-form input, .modal-form select, .modal-form textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 14px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { background: #f5f5f5; color: #3E2723; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .btn-confirm { background: #D4AF37; color: #3E2723; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        {!! file_get_contents(resource_path('css/modals.css')) !!}
         
         :root {
             --chocolate: #3E2723;
@@ -28,6 +15,10 @@
             --cream: #FFF8E1;
             --white: #FFFFFF;
             --sidebar-width: 250px;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -147,6 +138,8 @@
             <li class="nav-item"><a href="{{ route('director.employees') }}" class="active">Сотрудники</a></li>
             <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
             <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
+            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
+            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
             <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
         </ul>
     </div>
@@ -195,6 +188,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div style="margin-top: 20px;">
+                {{ $admins->appends(['masters_page' => request('masters_page')])->links() }}
+            </div>
 
             <h2 style="margin-top: 40px;">Мастера</h2>
             <table>
@@ -233,6 +229,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div style="margin-top: 20px;">
+                {{ $masters->appends(['admins_page' => request('admins_page')])->links() }}
+            </div>
         </div>
     </div>
 
@@ -327,6 +326,11 @@
                             <option value="{{ $salon->id }}">{{ $salon->name }}</option>
                         @endforeach
                     </select>
+                </div>
+                <!-- Фикс: добавлен пароль при редактировании -->
+                <div class="form-group">
+                    <label>Новый пароль (оставьте пустым, чтобы не менять)</label>
+                    <input type="password" name="password">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel">Отмена</button>

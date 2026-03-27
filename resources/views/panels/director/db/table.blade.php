@@ -175,6 +175,8 @@
             <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
             <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
             <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
+            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
+            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
             <li class="nav-item"><a href="{{ route('director.db.index') }}" class="active">База данных</a></li>
         </ul>
     </div>
@@ -274,23 +276,9 @@
                 </table>
             </div>
 
-            @if($rows->hasPages())
-                <div class="pagination">
-                    @if($rows->onFirstPage())
-                        <span>← Назад</span>
-                    @else
-                        <a href="{{ $rows->previousPageUrl() }}">← Назад</a>
-                    @endif
-
-                    <span>Страница {{ $rows->currentPage() }} из {{ $rows->lastPage() }}</span>
-
-                    @if($rows->hasMorePages())
-                        <a href="{{ $rows->nextPageUrl() }}">Вперёд →</a>
-                    @else
-                        <span>Вперёд →</span>
-                    @endif
-                </div>
-            @endif
+            <div style="margin-top: 20px; text-align: center;">
+                {{ $rows->links() }}
+            </div>
         </div>
     </div>
 </body>

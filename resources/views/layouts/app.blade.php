@@ -426,6 +426,11 @@
             showToast("{{ session('error') }}", 'error');
         @endif
     </script>
+    
+    <style>
+        {!! file_get_contents(resource_path('css/pagination.css')) !!}
+    </style>
+    
     @vite(['resources/js/improvements.js'])
     @yield('scripts')
 </body>

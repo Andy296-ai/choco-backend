@@ -89,6 +89,12 @@
                     </div>
                     @endforeach
                 </div>
+                
+                @if($salons->hasPages())
+                    <div style="margin-top: 20px; text-align: center;">
+                        {{ $salons->links() }}
+                    </div>
+                @endif
 
                 <div class="info-item">
                     <h4>Единый телефон</h4>

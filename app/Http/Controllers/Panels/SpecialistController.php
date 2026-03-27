@@ -67,7 +67,30 @@ class SpecialistController extends Controller
 
     public function clients()
     {
-        return view('panels.specialist.clients');
+        $user = Auth::user();
+        
+        // Get unique clients who have bookings with this specialist
+        $clients = Booking::with('client', 'service')
+            ->where('specialist_id', $user->id)
+            ->select('client_id')
+            ->distinct()
+            ->paginate(15);
+            
+        $clients->getCollection()->transform(function ($booking) use ($user) {
+            // For each unique client, find their most recent booking with this specialist
+            $lastBooking = Booking::with('service')
+                ->where('client_id', $booking->client_id)
+                ->where('specialist_id', $user->id)
+                ->orderBy('start_time', 'desc')
+                ->first();
+                
+            return [
+                'client' => $lastBooking->client,
+                'last_booking' => $lastBooking
+            ];
+        });
+
+        return view('panels.specialist.clients', compact('clients'));
     }
 
     public function portfolio()
