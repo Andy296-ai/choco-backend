@@ -212,7 +212,7 @@
                 <a href="{{ route('home') }}">Главная</a>
             </div>
             <div class="user-info">
-                <span>Привет, {{ auth('client')->user()->name }}!</span>
+                <span>Привет, {{ Auth::guard(\'client\')->user()->name }}!</span>
                 <a href="{{ route('client.logout') }}" class="logout-btn">Выход</a>
             </div>
         </div>
