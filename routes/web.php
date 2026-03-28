@@ -105,10 +105,10 @@ Route::middleware(['auth', 'role:specialist'])->prefix('specialist')->name('spec
 });
 
 // Client Routes - отдельные от employee routes
-Route::middleware(['auth:client'])->prefix('client')->name('client.')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard');
-    Route::get('/bookings', [App\Http\Controllers\ClientController::class, 'bookings'])->name('bookings');
-    Route::patch('/bookings/{booking}/cancel', [App\Http\Controllers\ClientController::class, 'cancelBooking'])->name('bookings.cancel');
+Route::middleware(['web'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard')->middleware('auth:client');
+    Route::get('/bookings', [App\Http\Controllers\ClientController::class, 'bookings'])->name('bookings')->middleware('auth:client');
+    Route::patch('/bookings/{booking}/cancel', [App\Http\Controllers\ClientController::class, 'cancelBooking'])->name('bookings.cancel')->middleware('auth:client');
 });
 
 // Auth
