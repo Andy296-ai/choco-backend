@@ -3,7 +3,7 @@
 @section('title', 'Мой кабинет — Шоколад')
 
 @section('page-title', 'Мой кабинет')
-@section('page-subtitle', 'Добро пожаловать, {{ Auth::guard(\'client\')->user()->name }}!')
+@section('page-subtitle', 'Добро пожаловать, {{ Auth::guard("client")->user()->name }}!')
 
 @section('content')
     <div class="content-card">
