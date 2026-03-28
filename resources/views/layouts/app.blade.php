@@ -45,6 +45,22 @@
         .nav-links a { color: var(--white); text-decoration: none; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; }
         .nav-links a:hover, .nav-links a.active { color: var(--gold); }
 
+        .nav-links form { display: flex; align-items: center; margin: 0; }
+        .nav-logout-btn {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.3s ease;
+        }
+        .nav-logout-btn:hover { color: var(--gold); }
+
         .btn-booking {
             background-color: var(--gold);
             color: var(--chocolate) !important;
@@ -78,6 +94,13 @@
 
         .mobile-menu.active { left: 0; }
         .mobile-menu a { color: var(--white); text-decoration: none; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+        .mobile-menu .nav-logout-btn {
+            font-size: 18px;
+            text-align: left;
+            width: 100%;
+            padding: 0;
+        }
+        .mobile-menu form.nav-logout-form { margin: 0; width: 100%; }
         .mobile-menu .close-menu { position: absolute; top: 20px; right: 20px; font-size: 30px; color: var(--gold); cursor: pointer; }
         
         .overlay {
@@ -332,10 +355,21 @@
                     <li><a href="{{ route('gallery') }}" class="{{ Route::is('gallery') ? 'active' : '' }}">Галерея</a></li>
                     <li><a href="{{ route('contacts') }}" class="{{ Route::is('contacts') ? 'active' : '' }}">Контакты</a></li>
                     <li><a href="{{ route('booking') }}" class="btn-booking">Онлайн запись</a></li>
-                    <li><a href="{{ route('profile') }}" class="{{ Route::is('profile') ? 'active' : '' }}">Кабинет</a></li>
+                    @auth('client')
+                        <li><a href="{{ route('client.dashboard') }}" class="{{ Route::is('client.dashboard') ? 'active' : '' }}">Кабинет</a></li>
+                        <li><a href="{{ route('client.bookings') }}" class="{{ Route::is('client.bookings') ? 'active' : '' }}">Мои записи</a></li>
+                        <li>
+                            <form method="POST" action="{{ route('client.logout') }}">
+                                @csrf
+                                <button type="submit" class="nav-logout-btn">Выход</button>
+                            </form>
+                        </li>
+                    @else
+                        <li><a href="{{ route('profile') }}" class="{{ Route::is('profile') ? 'active' : '' }}">Кабинет</a></li>
+                    @endauth
                 </ul>
 
-                <a href="{{ route('profile') }}" class="mobile-profile">👤</a>
+                <a href="{{ auth('client')->check() ? route('client.dashboard') : route('profile') }}" class="mobile-profile" aria-label="Кабинет">👤</a>
             </nav>
         </div>
     </header>
@@ -352,6 +386,16 @@
         <a href="{{ route('gallery') }}" onclick="toggleMenu()">Галерея</a>
         <a href="{{ route('contacts') }}" onclick="toggleMenu()">Контакты</a>
         <a href="{{ route('booking') }}" class="btn-booking" style="text-align: center;" onclick="toggleMenu()">Онлайн запись</a>
+        @auth('client')
+            <a href="{{ route('client.dashboard') }}" onclick="toggleMenu()">Кабинет</a>
+            <a href="{{ route('client.bookings') }}" onclick="toggleMenu()">Мои записи</a>
+            <form method="POST" action="{{ route('client.logout') }}" class="nav-logout-form">
+                @csrf
+                <button type="submit" class="nav-logout-btn">Выход</button>
+            </form>
+        @else
+            <a href="{{ route('profile') }}" onclick="toggleMenu()">Кабинет</a>
+        @endauth
     </div>
 
     <main>

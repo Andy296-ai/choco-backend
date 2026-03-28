@@ -1,83 +1,85 @@
-@extends('layouts.client')
+@extends('layouts.app')
 
 @section('title', 'Мои записи — Шоколад')
 
-@section('page-title', 'Мои записи')
-@section('page-subtitle', 'История ваших записей в салоне')
+@section('styles')
+    @include('client.partials.area-styles')
+@endsection
 
 @section('content')
-    <div class="content-card">
-        @if($bookings->count() > 0)
-            <div class="bookings-list">
-                @foreach($bookings as $booking)
-                    <div class="booking-item">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div style="flex: 1;">
-                                <h4>{{ $booking->service->name }}</h4>
-                                <p><strong>Мастер:</strong> {{ $booking->specialist->name }}</p>
-                                <p><strong>Салон:</strong> {{ $booking->salon->name }}</p>
-                                <p><strong>Дата и время:</strong> {{ $booking->start_time->format('d.m.Y H:i') }}</p>
-                                <p><strong>Длительность:</strong> {{ $booking->service->duration_minutes }} минут</p>
-                            </div>
-                            <div style="text-align: right; min-width: 120px;">
-                                <span class="status-badge" style="
-                                    {{ $booking->status === 'pending' ? 'background: #ffc107; color: #856404;' : '' }}
-                                    {{ $booking->status === 'confirmed' ? 'background: #28a745; color: white;' : '' }}
-                                    {{ $booking->status === 'completed' ? 'background: #6c757d; color: white;' : '' }}
-                                    {{ $booking->status === 'cancelled' ? 'background: #dc3545; color: white;' : '' }}
-                                ">
-                                    {{ $booking->status === 'pending' ? 'Ожидает' : '' }}
-                                    {{ $booking->status === 'confirmed' ? 'Подтверждено' : '' }}
-                                    {{ $booking->status === 'completed' ? 'Завершено' : '' }}
-                                    {{ $booking->status === 'cancelled' ? 'Отменено' : '' }}
-                                </span>
-                                
-                                @if($booking->status === 'pending' || $booking->status === 'confirmed')
-                                    <form method="POST" action="{{ route('client.bookings.cancel', $booking->id) }}" style="margin-top: 10px;">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" 
-                                                class="btn btn-danger"
-                                                style="width: 100%; margin-bottom: 5px;"
-                                                onclick="return confirm('Вы уверены, что хотите отменить запись?')">
-                                            Отменить
-                                        </button>
-                                    </form>
-                                @endif
+    <div class="page-header client-page-header">
+        <div class="container">
+            <h1>Мои записи</h1>
+            <p class="client-page-subtitle">История ваших записей в салоне</p>
+        </div>
+    </div>
 
-                                @if(in_array($booking->status, ['cancelled', 'completed']))
-                                    <form method="POST" action="{{ route('client.bookings.delete', $booking->id) }}" style="margin-top: 10px;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn btn-danger"
-                                                style="width: 100%;"
-                                                onclick="return confirm('Вы уверены, что хотите удалить эту запись навсегда?')">
-                                            Удалить
-                                        </button>
-                                    </form>
+    <div class="container client-area-main">
+        <div class="client-panel">
+            @if($bookings->count() > 0)
+                @foreach($bookings as $booking)
+                    <div class="client-booking-row">
+                        <div style="flex: 1; min-width: 0;">
+                            <h4>{{ $booking->service->name }}</h4>
+                            <p><strong>Мастер:</strong> {{ $booking->specialist->name }}</p>
+                            <p><strong>Салон:</strong> {{ $booking->salon->name }}</p>
+                            <p><strong>Дата и время:</strong> {{ $booking->start_time->format('d.m.Y H:i') }}</p>
+                            <p><strong>Длительность:</strong> {{ $booking->service->duration_minutes }} минут</p>
+                        </div>
+                        <div class="client-booking-side">
+                            <span class="client-badge"
+                                @if($booking->status === 'pending') style="background: #ffc107; color: #856404;"
+                                @elseif($booking->status === 'confirmed') style="background: #2e7d32; color: white;"
+                                @elseif($booking->status === 'completed') style="background: #616161; color: white;"
+                                @elseif($booking->status === 'cancelled') style="background: #c62828; color: white;"
+                                @endif>
+                                @if($booking->status === 'pending') Ожидает
+                                @elseif($booking->status === 'confirmed') Подтверждено
+                                @elseif($booking->status === 'completed') Завершено
+                                @elseif($booking->status === 'cancelled') Отменено
                                 @endif
-                            </div>
+                            </span>
+
+                            @if($booking->status === 'pending' || $booking->status === 'confirmed')
+                                <form method="POST" action="{{ route('client.bookings.cancel', $booking->id) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                        class="client-btn client-btn--danger"
+                                        onclick="return confirm('Вы уверены, что хотите отменить запись?')">
+                                        Отменить
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if(in_array($booking->status, ['cancelled', 'completed']))
+                                <form method="POST" action="{{ route('client.bookings.delete', $booking->id) }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="client-btn client-btn--danger"
+                                        onclick="return confirm('Вы уверены, что хотите удалить эту запись навсегда?')">
+                                        Удалить
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 @endforeach
-            </div>
-            
-            <!-- Пагинация -->
-            @if($bookings->hasPages())
-                <div style="margin-top: 30px; text-align: center;">
-                    {{ $bookings->links() }}
+
+                @if($bookings->hasPages())
+                    <div class="client-pagination">
+                        {{ $bookings->links() }}
+                    </div>
+                @endif
+            @else
+                <div class="client-empty">
+                    <div class="client-empty-icon" aria-hidden="true">📅</div>
+                    <h3>У вас пока нет записей</h3>
+                    <p>Запишитесь на услугу в нашем салоне красоты</p>
+                    <a href="{{ route('booking') }}" class="client-btn client-btn--gold">Записаться на услугу</a>
                 </div>
             @endif
-        @else
-            <div style="text-align: center; padding: 60px 20px; color: var(--text-light);">
-                <div style="font-size: 48px; margin-bottom: 20px;">📅</div>
-                <h3 style="color: var(--chocolate); margin-bottom: 15px;">У вас пока нет записей</h3>
-                <p style="margin-bottom: 30px;">Запишитесь на услугу в нашем салоне красоты</p>
-                <a href="{{ route('booking') }}" style="background: var(--gold); color: var(--chocolate); text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; display: inline-block; transition: all 0.3s;">
-                    Записаться на услугу
-                </a>
-            </div>
-        @endif
+        </div>
     </div>
 @endsection
