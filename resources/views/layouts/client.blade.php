@@ -22,70 +22,75 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--cream); 
-            color: var(--text-dark); 
-            line-height: 1.6; 
-            overflow-x: hidden; 
-        }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--cream); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
-        /* Client Navigation */
-        .client-nav {
+        /* Header */
+        header {
             background: var(--chocolate);
-            padding: 15px 0;
+            padding: 20px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
 
-        .client-nav .container {
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
         }
 
-        .client-nav .logo {
+        .logo {
             color: var(--gold);
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 600;
             text-decoration: none;
             font-family: 'Playfair Display', serif;
+            transition: color 0.3s;
         }
 
-        .client-nav .nav-links {
+        .logo:hover {
+            color: var(--gold-light);
+        }
+
+        nav ul {
+            list-style: none;
             display: flex;
-            gap: 25px;
+            gap: 30px;
             align-items: center;
-            flex-wrap: wrap;
         }
 
-        .client-nav .nav-links a {
+        nav a {
             color: var(--white);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
-            font-size: 14px;
+            font-size: 16px;
         }
 
-        .client-nav .nav-links a:hover {
+        nav a:hover {
             color: var(--gold);
         }
 
-        .client-nav .user-info {
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
             color: var(--white);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .client-info {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex-wrap: wrap;
+            color: var(--white);
         }
 
-        .client-nav .logout-btn {
+        .logout-btn {
             background: var(--gold);
             color: var(--chocolate);
             padding: 8px 16px;
@@ -96,27 +101,27 @@
             font-size: 14px;
         }
 
-        .client-nav .logout-btn:hover {
+        .logout-btn:hover {
             background: var(--gold-light);
             transform: translateY(-1px);
         }
 
         /* Page Header */
         .page-header {
-            background: linear-gradient(135deg, var(--chocolate), var(--chocolate-light));
+            padding: 150px 0 60px;
+            background-color: var(--chocolate);
             color: var(--white);
-            padding: 60px 0 30px;
             text-align: center;
         }
 
-        .page-header h1 {
-            font-size: 36px;
+        .page-header h1 { 
+            font-size: 48px; 
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .page-header p {
-            font-size: 16px;
+            font-size: 18px;
             opacity: 0.9;
         }
 
@@ -125,16 +130,16 @@
             background: var(--white);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 30px;
-            margin: -30px auto 40px;
+            padding: 40px;
+            margin: -50px auto 40px;
             position: relative;
             z-index: 1;
         }
 
         .content-card h3 {
             color: var(--chocolate);
-            margin-bottom: 25px;
-            font-size: 24px;
+            margin-bottom: 30px;
+            font-size: 28px;
             border-bottom: 3px solid var(--gold);
             padding-bottom: 10px;
         }
@@ -157,7 +162,7 @@
         .booking-item h4 {
             color: var(--chocolate);
             margin-bottom: 10px;
-            font-size: 18px;
+            font-size: 20px;
         }
 
         .booking-item p {
@@ -172,14 +177,47 @@
 
         /* Status Badges */
         .status-badge {
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             display: inline-block;
             margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--chocolate);
+        }
+
+        .btn-primary:hover {
+            background: var(--gold-light);
+            transform: translateY(-1px);
         }
 
         /* Success/Error Messages */
@@ -204,22 +242,44 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .client-nav .container {
-                flex-direction: column;
-                text-align: center;
+            .mobile-menu-toggle {
+                display: block;
             }
 
-            .client-nav .nav-links {
-                justify-content: center;
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--chocolate);
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+            nav ul.active {
+                display: flex;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .client-info {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 10px;
             }
 
             .page-header h1 {
-                font-size: 28px;
+                font-size: 32px;
             }
 
             .content-card {
                 padding: 20px;
-                margin: -20px auto 20px;
+                margin: -30px auto 20px;
             }
 
             .booking-item {
@@ -227,40 +287,47 @@
             }
 
             .booking-item h4 {
-                font-size: 16px;
+                font-size: 18px;
             }
         }
 
         @media (max-width: 480px) {
-            .client-nav .nav-links {
+            .client-info {
                 flex-direction: column;
                 gap: 10px;
+                text-align: center;
             }
 
-            .client-nav .user-info {
-                flex-direction: column;
-                gap: 10px;
+            nav ul {
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Client Navigation -->
-    <nav class="client-nav">
+    <header>
         <div class="container">
-            <a href="{{ route('home') }}" class="logo">Шоколад</a>
-            <div class="nav-links">
-                <a href="{{ route('client.dashboard') }}">Личный кабинет</a>
-                <a href="{{ route('client.bookings') }}">Мои записи</a>
-                <a href="{{ route('booking') }}">Записаться</a>
-                <a href="{{ route('home') }}">Главная</a>
-            </div>
-            <div class="user-info">
-                <span>Привет, {{ Auth::guard("client")->user()->name }}!</span>
-                <a href="{{ route('client.logout') }}" class="logout-btn">Выход</a>
+            <div class="header-content">
+                <a href="{{ route('home') }}" class="logo">Шоколад</a>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
+                <nav>
+                    <ul id="nav-menu">
+                        <li><a href="{{ route('client.dashboard') }}">Личный кабинет</a></li>
+                        <li><a href="{{ route('client.bookings') }}">Мои записи</a></li>
+                        <li><a href="{{ route('booking') }}">Записаться</a></li>
+                        <li><a href="{{ route('home') }}">Главная</a></li>
+                        <li><a href="{{ route('services') }}">Услуги</a></li>
+                        <li><a href="{{ route('about') }}">О нас</a></li>
+                        <li><a href="{{ route('contacts') }}">Контакты</a></li>
+                    </ul>
+                </nav>
+                <div class="client-info">
+                    <span>Привет, {{ Auth::guard("client")->user()->name }}!</span>
+                    <a href="{{ route('client.logout') }}" class="logout-btn">Выход</a>
+                </div>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Page Header -->
     <div class="page-header">
@@ -288,6 +355,22 @@
         @yield('content')
     </div>
 
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('nav-menu');
+            menu.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('nav-menu');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+                menu.classList.remove('active');
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

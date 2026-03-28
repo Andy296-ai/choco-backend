@@ -109,6 +109,7 @@ Route::middleware(['web'])->prefix('client')->name('client.')->group(function ()
     Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard')->middleware('auth:client');
     Route::get('/bookings', [App\Http\Controllers\ClientController::class, 'bookings'])->name('bookings')->middleware('auth:client');
     Route::patch('/bookings/{booking}/cancel', [App\Http\Controllers\ClientController::class, 'cancelBooking'])->name('bookings.cancel')->middleware('auth:client');
+    Route::delete('/bookings/{booking}/delete', [App\Http\Controllers\ClientController::class, 'deleteBooking'])->name('bookings.delete')->middleware('auth:client');
 });
 
 // Auth

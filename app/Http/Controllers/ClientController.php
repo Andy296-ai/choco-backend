@@ -58,4 +58,26 @@ class ClientController extends Controller
         
         return back()->with('success', 'Запись успешно отменена');
     }
+
+    /**
+     * Delete booking completely
+     */
+    public function deleteBooking(Request $request, Booking $booking)
+    {
+        $client = Auth::guard('client')->user();
+        
+        // Проверяем что бронирование принадлежит клиенту
+        if ($booking->client_id !== $client->id) {
+            return back()->with('error', 'У вас нет прав для удаления этой записи');
+        }
+        
+        // Проверяем что запись отменена или завершена
+        if (!in_array($booking->status, ['cancelled', 'completed'])) {
+            return back()->with('error', 'Можно удалить только отмененные или завершенные записи');
+        }
+        
+        $booking->delete();
+        
+        return back()->with('success', 'Запись успешно удалена');
+    }
 }

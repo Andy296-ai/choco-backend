@@ -37,9 +37,23 @@
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" 
-                                                style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 12px; width: 100%;"
+                                                class="btn btn-danger"
+                                                style="width: 100%; margin-bottom: 5px;"
                                                 onclick="return confirm('Вы уверены, что хотите отменить запись?')">
                                             Отменить
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if(in_array($booking->status, ['cancelled', 'completed']))
+                                    <form method="POST" action="{{ route('client.bookings.delete', $booking->id) }}" style="margin-top: 10px;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="btn btn-danger"
+                                                style="width: 100%;"
+                                                onclick="return confirm('Вы уверены, что хотите удалить эту запись навсегда?')">
+                                            Удалить
                                         </button>
                                     </form>
                                 @endif
