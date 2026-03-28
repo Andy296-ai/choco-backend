@@ -201,6 +201,37 @@ class DirectorController extends Controller
         return view('panels.admin.clients', compact('clients'));
     }
 
+    public function services(Request $request)
+    {
+        $query = Service::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
+        if ($request->filled('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
+
+        if ($request->filled('duration_min')) {
+            $query->where('duration_minutes', '>=', $request->duration_min);
+        }
+        if ($request->filled('duration_max')) {
+            $query->where('duration_minutes', '<=', $request->duration_max);
+        }
+
+        $services = $query->paginate(9);
+
+        return view('panels.admin.services', compact('services'));
+    }
+
     public function salons()
     {
         $salons = Salon::with('contacts')->paginate(10);

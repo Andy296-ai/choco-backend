@@ -65,6 +65,11 @@ Route::middleware(['auth', 'role:director'])->prefix('director')->name('director
     Route::get('/clients', [App\Http\Controllers\Panels\DirectorController::class, 'clients'])->name('clients');
     Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
     Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
+
+    Route::get('/services', [App\Http\Controllers\Panels\DirectorController::class, 'services'])->name('services');
+    Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');
+    Route::patch('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'updateService'])->name('services.update');
+    Route::delete('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'deleteService'])->name('services.delete');
     
     // Salon CRUD
     Route::post('/salons', [App\Http\Controllers\Panels\DirectorController::class, 'storeSalon'])->name('salons.store');
