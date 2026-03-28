@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
@@ -77,8 +78,7 @@ class AdminController extends Controller
             });
         }
         
-        // Фильтр по статусу
-        if ($request->filled('status')) {
+        if ($request->filled('status') && Schema::hasColumn('clients', 'status')) {
             $query->where('status', $request->status);
         }
         

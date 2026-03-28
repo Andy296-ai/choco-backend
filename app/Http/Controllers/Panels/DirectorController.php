@@ -11,6 +11,7 @@ use App\Models\Service;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Schedule;
 
 class DirectorController extends Controller
@@ -176,6 +177,28 @@ class DirectorController extends Controller
     {
         $employee->delete();
         return response()->json(['message' => 'Сотрудник удален']);
+    }
+
+    public function clients(Request $request)
+    {
+        $query = Client::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status') && Schema::hasColumn('clients', 'status')) {
+            $query->where('status', $request->status);
+        }
+
+        $clients = $query->orderBy('name')->paginate(10);
+
+        return view('panels.admin.clients', compact('clients'));
     }
 
     public function salons()

@@ -1,5 +1,9 @@
 @extends(Auth::user()->role === 'director' ? 'layouts.director' : 'layouts.admin')
 
+@php
+    $clientsIndexRoute = Auth::user()->role === 'director' ? 'director.clients' : 'admin.clients';
+@endphp
+
 @section('title', 'Клиенты — Шоколад')
 
 @section('content')
@@ -10,7 +14,7 @@
 
     <!-- Форма поиска и фильтров -->
     <div class="content-card" style="margin-bottom: 20px; padding: 20px;">
-        <form method="GET" action="{{ route('admin.clients') }}" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <form method="GET" action="{{ route($clientsIndexRoute) }}" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
                 <input type="text" name="search" placeholder="Поиск по имени, телефону или email..." 
                        value="{{ request('search') }}" 
@@ -29,7 +33,7 @@
                 Найти
             </button>
             
-            <a href="{{ route('admin.clients') }}" style="background: #f5f5f5; color: #666; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; display: inline-block;">
+            <a href="{{ route($clientsIndexRoute) }}" style="background: #f5f5f5; color: #666; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; display: inline-block;">
                 Сбросить
             </a>
         </form>
