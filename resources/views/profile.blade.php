@@ -208,6 +208,11 @@
 @endsection
 
 @section('content')
+@if(auth('client')->check())
+    <script>
+        window.location.href = '{{ route('client.dashboard') }}';
+    </script>
+@else
 <div class="page-header">
     <div class="container">
         <h1>Личный кабинет</h1>
@@ -347,7 +352,8 @@
             </div>
         </div>
     @endif
-</div>
+@endif
+@endsection
 
 @section('scripts')
 <script>

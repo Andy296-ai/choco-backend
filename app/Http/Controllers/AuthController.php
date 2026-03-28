@@ -41,7 +41,7 @@ class AuthController extends Controller
             \Illuminate\Support\Facades\Log::info('Client found/created:', ['id' => $client->id, 'name' => $client->name]);
             
             // Входим через guard и регенерируем сессию
-            Auth::guard('client')->login($client, true);
+            Auth::guard('client')->login($client);
             $request->session()->regenerate();
             
             \Illuminate\Support\Facades\Log::info('Client logged in via guard. Is check() true? ' . (Auth::guard('client')->check() ? 'Yes' : 'No'));

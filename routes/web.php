@@ -66,16 +66,6 @@ Route::middleware(['auth', 'role:director'])->prefix('director')->name('director
     Route::post('/salons', [App\Http\Controllers\Panels\DirectorController::class, 'storeSalon'])->name('salons.store');
     Route::patch('/salons/{salon}', [App\Http\Controllers\Panels\DirectorController::class, 'updateSalon'])->name('salons.update');
     Route::delete('/salons/{salon}', [App\Http\Controllers\Panels\DirectorController::class, 'deleteSalon'])->name('salons.delete');
-
-    // Admin pages accessible to Director
-    Route::get('/clients', [App\Http\Controllers\Panels\AdminController::class, 'clients'])->name('clients');
-    Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
-    Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
-    
-    Route::get('/services', [App\Http\Controllers\Panels\AdminController::class, 'services'])->name('services');
-    Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');
-    Route::patch('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'updateService'])->name('services.update');
-    Route::delete('/services/{service}', [App\Http\Controllers\Api\AdminApiController::class, 'deleteService'])->name('services.delete');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -114,6 +104,13 @@ Route::middleware(['auth', 'role:specialist'])->prefix('specialist')->name('spec
     Route::delete('/portfolio/{item}', [App\Http\Controllers\Panels\SpecialistController::class, 'deletePortfolio'])->name('portfolio.delete');
 });
 
+// Client Routes - отдельные от employee routes
+Route::middleware(['auth:client'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard');
+    Route::get('/bookings', [App\Http\Controllers\ClientController::class, 'bookings'])->name('bookings');
+    Route::patch('/bookings/{booking}/cancel', [App\Http\Controllers\ClientController::class, 'cancelBooking'])->name('bookings.cancel');
+});
+
 // Auth
 Route::any('/auth/telegram', [AuthController::class, 'telegramAuth'])->name('auth.telegram');
 
@@ -126,7 +123,6 @@ Route::prefix('api')->name('api.')->group(function () {
 });
 
 // Debug route removed for security reasons
-// If you need to promote a user to director, do it manually via database or create a proper admin command
 
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update')->middleware('auth:client');
