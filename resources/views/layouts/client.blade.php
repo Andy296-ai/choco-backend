@@ -37,12 +37,17 @@
             background: var(--chocolate);
             padding: 15px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .client-nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
         .client-nav .logo {
@@ -55,8 +60,9 @@
 
         .client-nav .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .client-nav .nav-links a {
@@ -64,6 +70,7 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
+            font-size: 14px;
         }
 
         .client-nav .nav-links a:hover {
@@ -75,6 +82,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .client-nav .logout-btn {
@@ -85,6 +93,7 @@
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s;
+            font-size: 14px;
         }
 
         .client-nav .logout-btn:hover {
@@ -96,18 +105,18 @@
         .page-header {
             background: linear-gradient(135deg, var(--chocolate), var(--chocolate-light));
             color: var(--white);
-            padding: 80px 0 40px;
+            padding: 60px 0 30px;
             text-align: center;
         }
 
         .page-header h1 {
-            font-size: 48px;
+            font-size: 36px;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .page-header p {
-            font-size: 18px;
+            font-size: 16px;
             opacity: 0.9;
         }
 
@@ -116,16 +125,16 @@
             background: var(--white);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            padding: 40px;
-            margin: -50px auto 40px;
+            padding: 30px;
+            margin: -30px auto 40px;
             position: relative;
             z-index: 1;
         }
 
         .content-card h3 {
             color: var(--chocolate);
-            margin-bottom: 30px;
-            font-size: 28px;
+            margin-bottom: 25px;
+            font-size: 24px;
             border-bottom: 3px solid var(--gold);
             padding-bottom: 10px;
         }
@@ -148,7 +157,7 @@
         .booking-item h4 {
             color: var(--chocolate);
             margin-bottom: 10px;
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .booking-item p {
@@ -163,9 +172,9 @@
 
         /* Status Badges */
         .status-badge {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -173,29 +182,64 @@
             margin-bottom: 10px;
         }
 
+        /* Success/Error Messages */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .client-nav .container {
                 flex-direction: column;
-                gap: 15px;
+                text-align: center;
             }
 
             .client-nav .nav-links {
-                flex-wrap: wrap;
                 justify-content: center;
             }
 
             .page-header h1 {
-                font-size: 32px;
+                font-size: 28px;
             }
 
             .content-card {
                 padding: 20px;
-                margin: -30px auto 20px;
+                margin: -20px auto 20px;
             }
 
             .booking-item {
                 padding: 15px;
+            }
+
+            .booking-item h4 {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .client-nav .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .client-nav .user-info {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -228,6 +272,19 @@
 
     <!-- Content -->
     <div class="container">
+        <!-- Flash Messages -->
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-error">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @yield('content')
     </div>
 

@@ -45,17 +45,17 @@ class ClientController extends Controller
         
         // Проверяем что бронирование принадлежит клиенту
         if ($booking->client_id !== $client->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return back()->with('error', 'У вас нет прав для отмены этой записи');
         }
         
         // Проверяем что можно отменить
         if ($booking->status === 'completed') {
-            return response()->json(['error' => 'Cannot cancel completed booking'], 400);
+            return back()->with('error', 'Нельзя отменить завершенную запись');
         }
         
         $booking->status = 'cancelled';
         $booking->save();
         
-        return response()->json(['message' => 'Booking cancelled successfully']);
+        return back()->with('success', 'Запись успешно отменена');
     }
 }
