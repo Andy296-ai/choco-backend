@@ -11,32 +11,37 @@ use Illuminate\Support\Facades\Validator;
 class DirectorDatabaseController extends Controller
 {
     /**
+     * Tables that the director is NOT allowed to view/edit via the DB panel.
+     * System tables and sensitive data tables are excluded.
+     */
+    private const HIDDEN_TABLES = [
+        'migrations',
+        'password_reset_tokens',
+        'password_resets',
+        'failed_jobs',
+        'personal_access_tokens',
+        'users',
+        'clients',
+        'sessions',
+        'cache',
+        'cache_locks',
+        'jobs',
+        'job_batches',
+        'failed_jobs',
+    ];
+
+    /**
      * Get all table names for sidebar/navigation.
+     * Uses Laravel Schema facade — compatible with any DB driver (SQLite, MySQL, Postgres).
      *
      * @return array
      */
     private function getTableNames(): array
     {
-        $database = config('database.connections.mysql.database');
-        $tables = DB::select('SHOW TABLES');
-
-        $tableKey = "Tables_in_{$database}";
-        $tableNames = array_map(function ($table) use ($tableKey) {
-            return $table->$tableKey;
-        }, $tables);
+        $tableNames = Schema::getTableListing();
 
         $tableNames = array_filter($tableNames, function ($table) {
-            return !in_array($table, [
-                'migrations',
-                'password_reset_tokens',
-                'password_resets',
-                'failed_jobs',
-                'personal_access_tokens',
-                'users',
-                'clients',
-                'sessions',
-                'cache',
-            ]);
+            return !in_array($table, self::HIDDEN_TABLES);
         });
 
         return array_values($tableNames);
@@ -326,33 +331,29 @@ class DirectorDatabaseController extends Controller
 
     private function getTableColumns(string $table): array
     {
-        $database = config('database.connections.mysql.database');
+        // Schema::getColumns() works with SQLite, MySQL, PostgreSQL
+        $columns = Schema::getColumns($table);
+        $primaryKeys = Schema::getIndexes($table);
 
-        $columns = DB::select(
-            'SELECT 
-                COLUMN_NAME as name,
-                DATA_TYPE as type,
-                IS_NULLABLE as nullable,
-                COLUMN_DEFAULT as default_value,
-                CHARACTER_MAXIMUM_LENGTH as max_length,
-                COLUMN_KEY as column_key,
-                EXTRA as extra
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = ?
-              AND TABLE_NAME = ?
-            ORDER BY ORDINAL_POSITION',
-            [$database, $table]
-        );
+        // Build set of primary key column names
+        $pkColumns = [];
+        foreach ($primaryKeys as $index) {
+            if ($index['primary']) {
+                $pkColumns = array_merge($pkColumns, $index['columns']);
+            }
+        }
 
-        return array_map(function ($column) {
+        return array_map(function ($column) use ($pkColumns) {
+            $typeName = strtolower($column['type_name'] ?? $column['type'] ?? 'string');
+
             return [
-                'name' => $column->name,
-                'type' => $column->type,
-                'nullable' => $column->nullable === 'YES',
-                'default' => $column->default_value,
-                'max_length' => $column->max_length,
-                'primary' => $column->column_key === 'PRI',
-                'auto_increment' => strpos($column->extra, 'auto_increment') !== false,
+                'name'          => $column['name'],
+                'type'          => $typeName,
+                'nullable'      => (bool) ($column['nullable'] ?? true),
+                'default'       => $column['default'] ?? null,
+                'max_length'    => $column['length'] ?? null,
+                'primary'       => in_array($column['name'], $pkColumns),
+                'auto_increment' => (bool) ($column['auto_increment'] ?? false),
             ];
         }, $columns);
     }
@@ -373,7 +374,18 @@ class DirectorDatabaseController extends Controller
 
     private function isValidTableName(string $table): bool
     {
-        return preg_match('/^[a-zA-Z0-9_]+$/', $table) === 1 && Schema::hasTable($table);
+        // 1. Regex sanity check (prevent SQL injection via table name)
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+            return false;
+        }
+
+        // 2. Whitelist check — block hidden/system tables even if they exist
+        if (in_array($table, self::HIDDEN_TABLES)) {
+            return false;
+        }
+
+        // 3. Table must actually exist in the database
+        return Schema::hasTable($table);
     }
 }
 

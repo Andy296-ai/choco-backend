@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Премиальное развитие — Шоколад лайф</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --chocolate: #3E2723;
+            --gold: #D4AF37;
+            --cream: #FFF8E1;
+            --white: #FFFFFF;
+            --dark-bg: #1A1210;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--white);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(rgba(26, 18, 16, 0.8), rgba(26, 18, 16, 0.9)), url('https://images.unsplash.com/photo-1560066914-1f29b2bb6327?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            max-width: 700px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: -100px auto 100px;
+            padding: 0 20px;
+        }
+
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--gold);
+            transform: scaleY(0);
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--gold);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .feature-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            color: var(--gold);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .price-tag {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--chocolate);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-top: 80px;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            color: var(--white);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 60px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #666;
+            font-size: 12px;
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: #d32f2f;
+            color: white;
+            padding: 5px 40px;
+            font-size: 10px;
+            font-weight: bold;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Premium Roadmap</h1>
+        <p>Стратегический план развития автоматизации для сети «Шоколад лайф» — переход от управления задачами к интеллектуальному бизнесу.</p>
+    </div>
+
+    <div class="container">
+        <div class="roadmap-grid">
+            <!-- Mobile Experience -->
+            <div class="feature-card">
+                <div class="badge">HOT</div>
+                <h3>PWA Мобильное приложение</h3>
+                <p>Превращение веб-интерфейса в полноценное приложение для iOS и Android. Push-уведомления о новых записях, работа офлайн и мгновенный доступ с главного экрана смартфона.</p>
+                <div class="price-tag">Enterprise</div>
+            </div>
+
+            <!-- Payments -->
+            <div class="feature-card">
+                <h3>Онлайн-эквайринг</h3>
+                <p>Интеграция с ЮKassa или Stripe. Возможность внедрения обязательной предоплаты для новых клиентов, что снизит процент неявок на 80%.</p>
+                <div class="price-tag">High ROI</div>
+            </div>
+
+            <!-- Bot v2 -->
+            <div class="feature-card">
+                <h3>Telegram Mini App</h3>
+                <p>Полноценная запись внутри Telegram без перехода в браузер. Использование Telegram WebApps для максимально бесшовного пользовательского опыта.</p>
+                <div class="price-tag">User First</div>
+            </div>
+
+            <!-- Inventory -->
+            <div class="feature-card">
+                <h3>Складской учет 2.0</h3>
+                <p>Автоматическое списание расходных материалов (краски, оксиды, шампуни) при выполнении услуг. Точный расчет себестоимости каждого окрашивания в реальном времени.</p>
+                <div class="price-tag">Automation</div>
+            </div>
+
+            <!-- Kanban -->
+            <div class="feature-card">
+                <h3>Управленческий Канбан</h3>
+                <p>Система постановки задач между Директором и Администраторами филиалов. Контроль выполнения стандартов сервиса и закупок через визуальные доски.</p>
+                <div class="price-tag">Management</div>
+            </div>
+
+            <!-- AI -->
+            <div class="feature-card">
+                <h3>Smart Analytics AI</h3>
+                <p>Прогнозирование загрузки салона на основе исторических данных. Автоматические рекомендации по запуску акций в "пустые" часы.</p>
+                <div class="price-tag">Advanced</div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2>Готовы к масштабированию?</h2>
+            <p style="color: #888;">Каждый модуль разработан для решения конкретных болей владельца сетевого бизнеса.</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2026 Choco Life Automation Group. Strictly Confidential.
+    </div>
+</body>
+</html>

@@ -211,6 +211,13 @@
                 <button type="submit" style="background: var(--chocolate); color: var(--white); border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: opacity 0.2s;">
                     Применить
                 </button>
+                <input type="hidden" name="service_sort" id="service_sort" value="{{ $serviceSort }}">
+                <input type="hidden" name="category_sort" id="category_sort" value="{{ $categorySort }}">
+                <input type="hidden" name="master_sort" id="master_sort" value="{{ $masterSort }}">
+                <a href="{{ route('director.finance.export-pdf', ['start_date' => request('start_date'), 'end_date' => request('end_date')]) }}" 
+                   style="background: #D32F2F; color: var(--white); text-decoration: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: opacity 0.2s; display: flex; align-items: center; gap: 5px;">
+                    <span>PDF Отчет</span>
+                </a>
             </form>
         </div>
 
@@ -252,7 +259,12 @@
             </div>
 
             <div class="content-card">
-                <h3>Топ услуг по доходу</h3>
+                <h3 style="justify-content: space-between;">
+                    Услуги по доходу
+                    <button type="button" onclick="toggleSort('service')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px; display:flex; align-items:center; gap:5px;">
+                        {{ $serviceSort === 'desc' ? 'Топ ↑' : 'Анти-топ ↓' }}
+                    </button>
+                </h3>
                 <ul class="service-list">
                     @foreach($topServices as $service)
                     <li class="service-item">
@@ -264,12 +276,62 @@
                     </li>
                     @endforeach
                 </ul>
+                @if($topServices->isEmpty())
+                <p style="text-align:center; color:#888; font-size:13px; margin:20px 0;">Нет данных за период</p>
+                @endif
             </div>
 
             <div class="content-card">
-                <h3>Популярные категории</h3>
+                <h3 style="justify-content: space-between;">
+                    Популярные категории
+                    <button type="button" onclick="toggleSort('category')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px;">
+                        {{ $categorySort === 'desc' ? 'Популярные ↑' : 'Редкие ↓' }}
+                    </button>
+                </h3>
                 <div class="chart-container">
                     <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="content-card full-width">
+                <h3 style="justify-content: space-between;">
+                    Эффективность мастеров
+                    <button type="button" onclick="toggleSort('master')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px;">
+                        {{ $masterSort === 'desc' ? 'Лучшие ↑' : 'Отстающие ↓' }}
+                    </button>
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="masterPerformanceChart"></canvas>
+                    </div>
+                    <div style="overflow-y: auto; max-height: 250px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead style="background: #f9f9f9; position: sticky; top: 0;">
+                                <tr>
+                                    <th style="padding: 10px; text-align: left;">Мастер</th>
+                                    <th style="padding: 10px; text-align: center;">Записи</th>
+                                    <th style="padding: 10px; text-align: right;">Выручка</th>
+                                    <th style="padding: 10px; text-align: center;">Уровень</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($masterPerformance as $master)
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 10px;">{{ $master['name'] }}</td>
+                                    <td style="padding: 10px; text-align: center;">{{ $master['count'] }}</td>
+                                    <td style="padding: 10px; text-align: right; font-weight: 600;">{{ number_format($master['revenue'], 0, '.', ' ') }} ₽</td>
+                                    <td style="padding: 10px; text-align: center;">
+                                        <span style="padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; 
+                                            background: {{ $master['level'] === 'Senior' ? '#C8E6C9' : ($master['level'] === 'Middle' ? '#FFF9C4' : '#F5F5F5') }};
+                                            color: {{ $master['level'] === 'Senior' ? '#2E7D32' : ($master['level'] === 'Middle' ? '#FBC02D' : '#757575') }};">
+                                            {{ $master['level'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -331,15 +393,19 @@
             }
         });
 
-        // Mock Data for Popular Categories (since we don't have categories in DB yet)
+        // Data for Popular Categories (now real dynamic data)
+        const categoryData = @json($categoryData);
+        const categoryLabels = Object.keys(categoryData);
+        const categoryCounts = Object.values(categoryData).map(c => c.count);
+        
         const categoryCtx = document.getElementById('categoryChart').getContext('2d');
         new Chart(categoryCtx, {
             type: 'bar',
             data: {
-                labels: ['Стрижки', 'Окрашивание', 'Маникюр', 'Услуги лица'],
+                labels: categoryLabels,
                 datasets: [{
                     label: 'Записей',
-                    data: [45, 32, 28, 15],
+                    data: categoryCounts,
                     backgroundColor: '#D4AF37',
                     borderRadius: 5
                 }]
@@ -352,10 +418,51 @@
                     legend: { display: false }
                 },
                 scales: {
-                    x: { beginAtZero: true }
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' } }
                 }
             }
         });
+
+        // Data for Specialist Performance
+        const masterData = @json($masterPerformance);
+        const masterCtx = document.getElementById('masterPerformanceChart').getContext('2d');
+        new Chart(masterCtx, {
+            type: 'bar',
+            data: {
+                labels: masterData.map(m => m.name),
+                datasets: [
+                    {
+                        label: 'Выручка (x10 ₽)',
+                        data: masterData.map(m => m.revenue / 10),
+                        backgroundColor: '#3E2723',
+                        borderRadius: 5
+                    },
+                    {
+                        label: 'Записи',
+                        data: masterData.map(m => m.count),
+                        backgroundColor: '#D4AF37',
+                        borderRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        function toggleSort(type) {
+            const input = document.getElementById(type + '_sort');
+            input.value = input.value === 'desc' ? 'asc' : 'desc';
+            input.closest('form').submit();
+        }
     </script>
 </body>
 </html>

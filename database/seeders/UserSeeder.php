@@ -45,5 +45,65 @@ class UserSeeder extends Seeder
             'role' => User::ROLE_SPECIALIST,
             'salon_id' => 1,
         ]);
+
+        User::create([
+            'login' => 'anna_master',
+            'name' => 'Анна Козлова',
+            'email' => 'anna.k@choco.ru',
+            'phone' => '+7 (926) 607-07-04',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 1,
+        ]);
+
+        User::create([
+            'login' => 'dmitry_master',
+            'name' => 'Дмитрий Волков',
+            'email' => 'dmitry.v@choco.ru',
+            'phone' => '+7 (926) 607-07-05',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 2,
+        ]);
+
+        User::create([
+            'login' => 'marina_master',
+            'name' => 'Марина Соколова',
+            'email' => 'marina.s@choco.ru',
+            'phone' => '+7 (926) 607-07-06',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 2,
+        ]);
+
+        User::create([
+            'login' => 'sergey_master',
+            'name' => 'Сергей Морозов',
+            'email' => 'sergey.m@choco.ru',
+            'phone' => '+7 (926) 607-07-07',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 3,
+        ]);
+
+        User::create([
+            'login' => 'natalia_master',
+            'name' => 'Наталья Борисова',
+            'email' => 'natalia.b@choco.ru',
+            'phone' => '+7 (926) 607-07-08',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 3,
+        ]);
+
+        User::create([
+            'login' => 'igor_master',
+            'name' => 'Игорь Петров',
+            'email' => 'igor.p@choco.ru',
+            'phone' => '+7 (926) 607-07-09',
+            'password' => Hash::make('password'),
+            'role' => User::ROLE_SPECIALIST,
+            'salon_id' => 3,
+        ]);
     }
 }

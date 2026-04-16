@@ -22,6 +22,8 @@ class Client extends Authenticatable
         'telegram_last_name',
         'telegram_photo_url',
         'salon_id',
+        'discount',
+        'notes',
     ];
 
     protected $hidden = [
@@ -31,6 +33,7 @@ class Client extends Authenticatable
 
     protected $casts = [
         'password' => 'hashed',
+        'discount' => 'integer',
     ];
 
     public static function findOrCreateFromTelegram(array $telegramData)

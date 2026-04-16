@@ -321,4 +321,22 @@ class AdminApiController extends Controller
         $service->delete();
         return response()->json(['message' => 'Услуга удалена']);
     }
+
+    /**
+     * Обновить скидку и заметки клиента
+     */
+    public function updateClientDiscount(Request $request, Client $client)
+    {
+        $validated = $request->validate([
+            'discount' => 'required|integer|min:0|max:100',
+            'notes'    => 'nullable|string|max:1000',
+        ]);
+
+        $client->update($validated);
+
+        return response()->json([
+            'message' => 'Скидка клиента обновлена',
+            'client'  => $client,
+        ]);
+    }
 }

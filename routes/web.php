@@ -60,11 +60,13 @@ Route::middleware(['auth', 'role:director'])->prefix('director')->name('director
     Route::patch('/employees/{employee}', [App\Http\Controllers\Panels\DirectorController::class, 'updateEmployee'])->name('employees.update');
     Route::delete('/employees/{employee}', [App\Http\Controllers\Panels\DirectorController::class, 'deleteEmployee'])->name('employees.delete');
     Route::get('/finance', [App\Http\Controllers\Panels\DirectorController::class, 'finance'])->name('finance');
+    Route::get('/finance/export-pdf', [App\Http\Controllers\Panels\DirectorController::class, 'exportFinancePdf'])->name('finance.export-pdf');
     Route::get('/settings', [App\Http\Controllers\Panels\DirectorController::class, 'salons'])->name('settings');
 
     Route::get('/clients', [App\Http\Controllers\Panels\DirectorController::class, 'clients'])->name('clients');
     Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
     Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
+    Route::patch('/clients/{client}/discount', [App\Http\Controllers\Api\AdminApiController::class, 'updateClientDiscount'])->name('clients.discount');
 
     Route::get('/services', [App\Http\Controllers\Panels\DirectorController::class, 'services'])->name('services');
     Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');
@@ -88,6 +90,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/clients', [App\Http\Controllers\Panels\AdminController::class, 'clients'])->name('clients');
     Route::post('/clients', [App\Http\Controllers\Api\AdminApiController::class, 'storeClient'])->name('clients.store');
     Route::get('/clients/{client}', [App\Http\Controllers\Api\AdminApiController::class, 'showClient'])->name('clients.show');
+    Route::patch('/clients/{client}/discount', [App\Http\Controllers\Api\AdminApiController::class, 'updateClientDiscount'])->name('clients.discount');
     
     Route::get('/masters', [App\Http\Controllers\Panels\AdminController::class, 'masters'])->name('masters');
     Route::get('/masters/{master}/schedule', [App\Http\Controllers\Api\AdminApiController::class, 'getSchedule'])->name('masters.schedule');
@@ -122,7 +125,7 @@ Route::middleware(['web'])->prefix('client')->name('client.')->group(function ()
 });
 
 // Auth
-Route::any('/auth/telegram', [AuthController::class, 'telegramAuth'])->name('auth.telegram');
+Route::get('/auth/telegram', [AuthController::class, 'telegramAuth'])->name('auth.telegram');
 
 // API for Dynamic Booking
 Route::prefix('api')->name('api.')->group(function () {

@@ -128,13 +128,33 @@
                     const bookings = data.bookings;
                     
                     let html = `
-                        <div style="margin-bottom: 20px;">
+                        <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                             <h4 style="margin: 0 0 5px; color: var(--chocolate); font-size: 18px;">${client.name}</h4>
-                            <p style="margin: 0; color: #666; font-size: 14px;">📞 ${client.phone || 'Не указан'} | 💬 ${client.telegram_username ? '@'+client.telegram_username : 'Нет TG'}</p>
-                            <p style="margin: 5px 0 0; color: var(--gold); font-weight: 600;">Скидка: ${client.discount}%</p>
+                            <p style="margin: 0; color: #666; font-size: 14px;">📞 ${client.phone || 'Не указан'} | 📧 ${client.email || 'Нет email'}</p>
+                            <p style="margin: 5px 0 0; color: #888; font-size: 12px;">💬 ${client.telegram_username ? '@'+client.telegram_username : 'Нет Telegram'}</p>
                         </div>
-                        <h5 style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">История посещений</h5>
-                        <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+
+                        <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe082;">
+                            <h5 style="margin: 0 0 10px; color: var(--chocolate); font-size: 14px;">Индивидуальные настройки</h5>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-size: 11px; color: #888; margin-bottom: 3px;">Скидка (%)</label>
+                                    <input type="number" id="client-discount-input" value="${client.discount || 0}" min="0" max="100" 
+                                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: block; font-size: 11px; color: #888; margin-bottom: 3px;">Внутренние заметки</label>
+                                <textarea id="client-notes-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; height: 60px;">${client.notes || ''}</textarea>
+                            </div>
+                            <button onclick="saveClientSettings(${client.id})" 
+                                    style="background: var(--gold); color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: 600; cursor: pointer; width: 100%; font-size: 13px;">
+                                Сохранить настройки
+                            </button>
+                        </div>
+
+                        <h5 style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 14px; color: #444;">История посещений</h5>
+                        <ul style="list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto;">
                     `;
                     
                     if (bookings.length === 0) {
@@ -158,6 +178,39 @@
                 .catch(err => {
                     document.getElementById('client-profile-content').innerHTML = '<p style="color:red;">Ошибка загрузки данных</p>';
                 });
+        }
+
+        function saveClientSettings(clientId) {
+            const discount = document.getElementById('client-discount-input').value;
+            const notes = document.getElementById('client-notes-input').value;
+            
+            const baseUrl = '{{ Auth::user()->role === "director" ? url("/director/clients") : url("/admin/clients") }}';
+            
+            fetch(`${baseUrl}/${clientId}/discount`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    discount: parseInt(discount),
+                    notes: notes
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Данные клиента успешно сохранены');
+                    location.reload();
+                } else {
+                    alert(data.error || 'Произошла ошибка при сохранении');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Сетевая ошибка при сохранении');
+            });
         }
         
         function handleFormSubmit(e) {

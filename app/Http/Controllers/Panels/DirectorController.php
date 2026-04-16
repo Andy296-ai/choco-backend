@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Schedule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DirectorController extends Controller
 {
@@ -295,11 +296,12 @@ class DirectorController extends Controller
                 
                 return [
                     'name' => $salon->name,
-                    'revenue' => $revenue
+                    'revenue' => (float)$revenue
                 ];
             });
 
-        // 4. Top Services — filtered by selected period
+        // 4. Services Analytics with Sorting
+        $serviceSort = $request->input('service_sort', 'desc');
         $topServices = Service::get()
             ->map(function($service) use ($startDate, $endDate) {
                 $completedBookings = $service->bookings()
@@ -308,13 +310,77 @@ class DirectorController extends Controller
                     ->count();
                 $revenue = $completedBookings * $service->price;
                 return [
-                    'name' => $service->name,
-                    'revenue' => $revenue,
+                    'name' => $service['name'],
+                    'revenue' => (float)$revenue,
                     'count' => $completedBookings
                 ];
             })
-            ->sortByDesc('revenue')
-            ->take(5);
+            ->filter(fn($s) => $s['count'] > 0);
+            
+        if ($serviceSort === 'asc') {
+            $topServices = $topServices->sortBy('revenue');
+        } else {
+            $topServices = $topServices->sortByDesc('revenue');
+        }
+        $topServices = $topServices->take(5);
+
+        // 5. Category Analytics (Group services by first word of name)
+        $categorySort = $request->input('category_sort', 'desc');
+        $categoryData = Booking::where('bookings.status', 'completed')
+            ->whereBetween('bookings.start_time', [$startDate, $endDate])
+            ->join('services', 'bookings.service_id', '=', 'services.id')
+            ->get()
+            ->groupBy(function($booking) {
+                $words = explode(' ', trim($booking->service->name));
+                return $words[0]; // Heuristic: first word is the category
+            })
+            ->map(function($group, $category) {
+                return [
+                    'name' => $category,
+                    'count' => $group->count(),
+                    'revenue' => (float)$group->sum('price')
+                ];
+            });
+
+        if ($categorySort === 'asc') {
+            $categoryData = $categoryData->sortBy('count');
+        } else {
+            $categoryData = $categoryData->sortByDesc('count');
+        }
+        $categoryData = $categoryData->take(5);
+
+        // 6. Master Performance (Specialists)
+        $masterSort = $request->input('master_sort', 'desc');
+        $masterPerformance = User::where('role', User::ROLE_SPECIALIST)
+            ->get()
+            ->map(function($master) use ($startDate, $endDate) {
+                $completed = Booking::where('specialist_id', $master->id)
+                    ->where('bookings.status', 'completed')
+                    ->whereBetween('bookings.start_time', [$startDate, $endDate])
+                    ->join('services', 'bookings.service_id', '=', 'services.id');
+                
+                $revenue = (float)$completed->sum('services.price');
+                $count = $completed->count();
+
+                // Level logic based on user request: by booking count
+                $level = 'Junior';
+                if ($count > 30) $level = 'Senior';
+                elseif ($count >= 10) $level = 'Middle';
+
+                return [
+                    'name' => $master->name,
+                    'revenue' => $revenue,
+                    'count' => $count,
+                    'level' => $level
+                ];
+            })
+            ->filter(fn($m) => $m['count'] > 0);
+
+        if ($masterSort === 'asc') {
+            $masterPerformance = $masterPerformance->sortBy('revenue');
+        } else {
+            $masterPerformance = $masterPerformance->sortByDesc('revenue');
+        }
 
         return view('panels.director.finance', compact(
             'totalRevenue', 
@@ -324,9 +390,125 @@ class DirectorController extends Controller
             'monthlyRevenue', 
             'salonRevenue', 
             'topServices',
+            'categoryData',
+            'masterPerformance',
             'startDate',
-            'endDate'
+            'endDate',
+            'serviceSort',
+            'categorySort',
+            'masterSort'
         ));
+    }
+
+    /**
+     * Экспорт финансового отчёта в PDF
+     */
+    public function exportFinancePdf(Request $request)
+    {
+        $startDate = $request->input('start_date') 
+            ? Carbon::parse($request->input('start_date'))->startOfDay() 
+            : now()->startOfMonth();
+        $endDate = $request->input('end_date') 
+            ? Carbon::parse($request->input('end_date'))->endOfDay() 
+            : now()->endOfDay();
+
+        // 1. Stats
+        $totalRevenue = Booking::where('bookings.status', 'completed')
+            ->whereBetween('bookings.start_time', [$startDate, $endDate])
+            ->join('services', 'bookings.service_id', '=', 'services.id')
+            ->sum('services.price');
+
+        $expenses = $totalRevenue * 0.35;
+        $profit = $totalRevenue - $expenses;
+
+        // 2. Revenue by Salon
+        $salonRevenue = Salon::get()
+            ->map(function($salon) use ($startDate, $endDate) {
+                $revenue = Booking::where('salon_id', $salon->id)
+                    ->where('status', 'completed')
+                    ->whereBetween('start_time', [$startDate, $endDate])
+                    ->join('services', 'bookings.service_id', '=', 'services.id')
+                    ->sum('services.price');
+                return [
+                    'name' => $salon->name,
+                    'revenue' => (float)$revenue
+                ];
+            });
+
+        // 3. Services Analytics with Sorting
+        $serviceSort = $request->input('service_sort', 'desc');
+        $topServices = Service::get()
+            ->map(function($service) use ($startDate, $endDate) {
+                $count = $service->bookings()
+                    ->where('status', 'completed')
+                    ->whereBetween('start_time', [$startDate, $endDate])
+                    ->count();
+                return [
+                    'name'    => $service->name,
+                    'count'   => $count,
+                    'revenue' => (float)($count * $service->price)
+                ];
+            })
+            ->filter(fn($s) => $s['count'] > 0);
+
+        if ($serviceSort === 'asc') {
+            $topServices = $topServices->sortBy('revenue');
+        } else {
+            $topServices = $topServices->sortByDesc('revenue');
+        }
+        $topServices = $topServices->take(10);
+
+        // 4. Master Performance
+        $masterSort = $request->input('master_sort', 'desc');
+        $masterPerformance = User::where('role', User::ROLE_SPECIALIST)
+            ->get()
+            ->map(function($master) use ($startDate, $endDate) {
+                $completed = Booking::where('specialist_id', $master->id)
+                    ->where('bookings.status', 'completed')
+                    ->whereBetween('bookings.start_time', [$startDate, $endDate])
+                    ->join('services', 'bookings.service_id', '=', 'services.id');
+                
+                $revenue = (float)$completed->sum('services.price');
+                $count = $completed->count();
+
+                $level = 'Junior';
+                if ($count > 30) $level = 'Senior';
+                elseif ($count >= 10) $level = 'Middle';
+
+                return [
+                    'name' => $master->name,
+                    'revenue' => $revenue,
+                    'count' => $count,
+                    'level' => $level
+                ];
+            })
+            ->filter(fn($m) => $m['count'] > 0);
+
+        if ($masterSort === 'asc') {
+            $masterPerformance = $masterPerformance->sortBy('revenue');
+        } else {
+            $masterPerformance = $masterPerformance->sortByDesc('revenue');
+        }
+
+        // SVG Chart Scaling Metadata
+        $maxSalonRevenue = $salonRevenue->max('revenue') ?: 1;
+        $maxMasterRevenue = $masterPerformance->max('revenue') ?: 1;
+        $maxMasterCount = $masterPerformance->max('count') ?: 1;
+
+        $logoPath = public_path('logo.svg');
+        $logoBase = file_exists($logoPath) ? 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($logoPath)) : null;
+
+        $data = compact(
+            'totalRevenue', 'expenses', 'profit', 'salonRevenue', 
+            'topServices', 'masterPerformance', 'startDate', 'endDate', 
+            'serviceSort', 'masterSort', 'maxSalonRevenue', 
+            'maxMasterRevenue', 'maxMasterCount', 'logoBase'
+        );
+        
+        $pdf = Pdf::loadView('exports.finance', $data);
+        
+        $filename = 'finance_report_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
     }
 
     public function storeSalon(Request $request)

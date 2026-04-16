@@ -17,69 +17,50 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
-        // Helper to get client by name (from clients table)
-        $getClientId = fn($name) => Client::where('name', $name)->first()?->id;
-        // Helper to get specialist by name (from users table)
-        $getMasterId = fn($name) => User::where('name', $name)->first()?->id;
-        // Helper to get salon by name
-        $getSalonId = fn($name) => Salon::where('name', 'like', "%$name%")->first()?->id;
-        // Helper to get service by name
-        $getServiceId = fn($name) => Service::where('name', 'like', "%$name%")->first()?->id;
+        $clients = Client::all();
+        $salons = Salon::all();
+        $services = Service::all();
+        $specialists = User::where('role', User::ROLE_SPECIALIST)->get();
 
-        $bookings = [
-            // Past bookings (completed)
-            [
-                'client_name' => 'Иван Петров',
-                'salon_keyword' => 'Хотьково',
-                'service_keyword' => 'Мужская',
-                'master_name' => 'Елена Кузнецова',
-                'start_time' => Carbon::now()->subDays(10)->setTime(10, 0),
-                'end_time' => Carbon::now()->subDays(10)->setTime(10, 40),
-                'status' => 'completed',
-                'notes' => 'Клиент доволен',
-            ],
-            [
-                'client_name' => 'Мария Иванова',
-                'salon_keyword' => 'Центр',
-                'service_keyword' => 'Маникюр + гель',
-                'master_name' => 'Ольга Смирнова',
-                'start_time' => Carbon::now()->subDays(7)->setTime(14, 0),
-                'end_time' => Carbon::now()->subDays(7)->setTime(15, 30),
-                'status' => 'completed',
-                'notes' => null,
-            ],
+        if ($clients->isEmpty() || $salons->isEmpty() || $services->isEmpty() || $specialists->isEmpty()) {
+            return;
+        }
 
-            // Upcoming bookings
-            [
-                'client_name' => 'Екатерина Смирнова',
-                'salon_keyword' => 'Центр',
-                'service_keyword' => 'Женская стрижка',
-                'master_name' => 'Елена Кузнецова',
-                'start_time' => Carbon::now()->addDays(2)->setTime(10, 0),
-                'end_time' => Carbon::now()->addDays(2)->setTime(11, 0),
-                'status' => 'confirmed',
-                'notes' => null,
-            ],
-        ];
+        // Generate ~150 historical bookings over the last 6 months
+        for ($i = 0; $i < 150; $i++) {
+            $service = $services->random();
+            $specialist = $specialists->random();
+            
+            // Try to match salon to specialist's salon if possible
+            $salon = $specialist->salon_id ? Salon::find($specialist->salon_id) : $salons->random();
+            
+            // Random date in the last 6 months
+            $daysAgo = rand(0, 180);
+            $hour = rand(9, 19);
+            $minute = rand(0, 5) * 10;
+            
+            $startTime = Carbon::now()->subDays($daysAgo)->setTime($hour, $minute);
+            $endTime = (clone $startTime)->addMinutes($service->duration_minutes);
 
-        foreach ($bookings as $b) {
-            $clientId = $getClientId($b['client_name']);
-            $salonId = $getSalonId($b['salon_keyword']);
-            $serviceId = $getServiceId($b['service_keyword']);
-            $masterId = $getMasterId($b['master_name']);
-
-            if ($clientId && $salonId && $serviceId && $masterId) {
-                Booking::create([
-                    'client_id' => $clientId,
-                    'salon_id' => $salonId,
-                    'service_id' => $serviceId,
-                    'specialist_id' => $masterId,
-                    'start_time' => $b['start_time'],
-                    'end_time' => $b['end_time'],
-                    'status' => $b['status'],
-                    'notes' => $b['notes'],
-                ]);
+            // 85% chance of being completed if in the past
+            // 15% chance of being cancelled or confirmed (if near future)
+            $status = 'completed';
+            if ($startTime->isFuture()) {
+                $status = rand(0, 10) > 2 ? 'confirmed' : 'cancelled';
+            } else {
+                $status = rand(0, 10) > 1 ? 'completed' : 'cancelled';
             }
+
+            Booking::create([
+                'client_id' => $clients->random()->id,
+                'salon_id' => $salon->id,
+                'service_id' => $service->id,
+                'specialist_id' => $specialist->id,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'status' => $status,
+                'notes' => rand(0, 10) > 7 ? 'Сгенерированная запись для отчёта' : null,
+            ]);
         }
     }
 }

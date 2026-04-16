@@ -17,7 +17,16 @@ class AdminController extends Controller
     {
         $user = Auth::user();
         $salon = $user->salon;
-        
+
+        // Если admin не привязан к салону — вернуть пустой дашборд
+        if (!$salon) {
+            $bookings = Booking::whereRaw('0 = 1')->paginate(20);
+            $clients  = collect();
+            $services = collect();
+            $masters  = collect();
+            return view('panels.admin.dashboard', compact('salon', 'bookings', 'clients', 'services', 'masters'));
+        }
+
         $query = Booking::where('salon_id', $salon->id)
             ->with(['client', 'service', 'specialist']);
         
@@ -66,22 +75,29 @@ class AdminController extends Controller
     public function clients(Request $request)
     {
         $salon = Auth::user()->salon;
-        $query = $salon ? $salon->clients() : collect();
-        
+
+        // Если admin не привязан к салону — вернуть пустой результат безопасно
+        if (!$salon) {
+            $clients = Client::whereRaw('0 = 1')->paginate(10);
+            return view('panels.admin.clients', compact('clients'));
+        }
+
+        $query = $salon->clients();
+
         // Поиск
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
-        
+
         if ($request->filled('status') && Schema::hasColumn('clients', 'status')) {
             $query->where('status', $request->status);
         }
-        
+
         $clients = $query->orderBy('name')->paginate(10);
         return view('panels.admin.clients', compact('clients'));
     }
@@ -89,27 +105,25 @@ class AdminController extends Controller
     public function masters(Request $request)
     {
         $salon = Auth::user()->salon;
-        $query = $salon ? $salon->users()->where('role', User::ROLE_SPECIALIST) : collect();
-        
+
+        // Если admin не привязан к салону — вернуть пустой результат
+        if (!$salon) {
+            $masters = User::whereRaw('0 = 1')->paginate(10);
+            return view('panels.admin.masters', compact('masters'));
+        }
+
+        $query = $salon->users()->where('role', User::ROLE_SPECIALIST);
+
         // Поиск
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
-        
-        // Фильтр по статусу
-        if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($request->status === 'inactive') {
-                $query->where('is_active', false);
-            }
-        }
-        
+
         $masters = $query->paginate(10);
         return view('panels.admin.masters', compact('masters'));
     }
