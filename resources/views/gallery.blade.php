@@ -111,7 +111,7 @@
     </div>
 </div>
 
-<main class="gallery-section">
+<section class="gallery-section">
     <div class="container">
         @if($portfolioItems->count() > 0)
             <div class="gallery-grid">
@@ -148,5 +148,5 @@
             </div>
         @endif
     </div>
-</main>
+</section>
 @endsection

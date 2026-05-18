@@ -125,8 +125,8 @@
         .footer-section a { color: #ccc; text-decoration: none; transition: color 0.3s ease; }
         .footer-section a:hover { color: var(--gold); }
         .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #888; }
-        .linka {text-align: center; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #888;}
-        .linka:hover {text-align: center; padding-top: 30px; border-top: 1px solid rgba(200, 0, 0, 0.48); font-size: 12px; color: #c8c801ff;}
+        .linka { color: #aaa; text-decoration: none; transition: color 0.3s ease; }
+        .linka:hover { color: var(--gold); }
 
         @media (max-width: 850px) {
             .nav-links { display: none; }
@@ -425,7 +425,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Салон красоты «Шоколад». Cайт дубл. и ещё в тадии разработки <a class="linka" href="http://www.shodruz.fun">Шодрузом</a></p>
+                <p>&copy; 2026 Салон красоты «Шоколад». Сайт ещё в стадии разработки <a class="linka" href="http://www.shodruz.fun">Шодрузом</a></p>
             </div>
         </div>
     </footer>

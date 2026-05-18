@@ -46,7 +46,7 @@
     </div>
 </div>
 
-<main class="services-section">
+<section class="services-section">
     <div class="container">
         <div class="service-category">
             <h2 class="category-title">Парикмахерские услуги</h2>
@@ -79,5 +79,5 @@
             </ul>
         </div>
     </div>
-</main>
+</section>
 @endsection

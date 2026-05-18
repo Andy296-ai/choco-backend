@@ -43,6 +43,13 @@
     @media (max-width: 768px) {
         .about-content { grid-template-columns: 1fr; }
         .about-image { order: -1; }
+        .stats { flex-wrap: wrap; gap: 30px; }
+        .stat-item { min-width: 120px; }
+    }
+
+    @media (max-width: 480px) {
+        .stats { justify-content: center; }
+        .stat-item h3 { font-size: 36px; }
     }
 </style>
 @endsection
@@ -55,7 +62,7 @@
     </div>
 </div>
 
-<main class="about-section">
+<section class="about-section">
     <div class="container">
         <div class="about-content">
             <div class="about-text">
@@ -88,5 +95,5 @@
             </div>
         </div>
     </div>
-</main>
+</section>
 @endsection

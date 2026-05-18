@@ -220,7 +220,6 @@
 </div>
 
 <div class="container">
-    @if(!auth('client')->check())
         <div style="max-width: 550px; margin: 50px auto;">
             <div class="auth-card">
                 <h2>Вход в кабинет</h2>
@@ -268,90 +267,7 @@
                 </p>
             </div>
         </div>
-    @else
-        <!-- Client Dashboard -->
-        <div class="dashboard-container">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Здравствуйте, {{ $user->name }}!</h2>
-                    <p style="color: #888;">Добро пожаловать в ваш личный кабинет</p>
-                    @if($user->telegram_username)
-                        <p style="color: #0088cc; margin-top: 5px;">
-                            <span class="telegram-icon">✈️</span> 
-                            Telegram: @{{ $user->telegram_username }}
-                        </p>
-                    @endif
-                </div>
-                <form action="{{ route('client.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-auth" style="width: auto; padding: 10px 20px;">Выйти</button>
-                </form>
-            </div>
-
-            @if(session('success'))
-                <div style="background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 5px; margin-bottom: 25px;">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if(request('from') === 'booking')
-                <div style="background: #e3f2fd; color: #1565c0; padding: 15px; border-radius: 5px; margin-bottom: 25px;">
-                    Вы вошли в кабинет. Теперь можете <a href="{{ route('booking') }}" style="color: var(--chocolate); font-weight: 600;">перейти к онлайн-записи</a> и завершить бронирование.
-                </div>
-            @endif
-
-            <div class="dashboard-grid-layout">
-                <div class="booking-history">
-                    <h3>Мои записи</h3>
-                    @forelse($bookings as $booking)
-                        <div class="booking-item {{ $booking->status === 'cancelled' ? 'cancelled' : '' }}" style="{{ $booking->status === 'cancelled' ? 'opacity: 0.5;' : '' }}">
-                            <div class="booking-info">
-                                <h4>{{ $booking->service->name ?? 'Услуга удалена' }}</h4>
-                                <p>{{ $booking->start_time->translatedFormat('j F Y, H:i') }} — Мастер {{ $booking->specialist->name ?? 'Не назначен' }}</p>
-                                <p style="font-size: 12px; color: #888;">{{ $booking->salon->name ?? 'Салон удален' }}</p>
-                            </div>
-                            <div class="booking-status" style="text-align: right;">
-                                @php
-                                    $statusNames = [
-                                        'pending' => 'В ожидании',
-                                        'confirmed' => 'Предстоящая',
-                                        'completed' => 'Завершена',
-                                        'cancelled' => 'Отменена'
-                                    ];
-                                @endphp
-                                <div>{{ $statusNames[$booking->status] ?? $booking->status }}</div>
-                                @if(in_array($booking->status, ['pending', 'confirmed']))
-                                    <button onclick="cancelBooking({{ $booking->id }})" style="background: none; border: none; color: #f44336; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 5px;">Отменить</button>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <p style="color: #888; padding: 20px; border: 1px dashed #ddd; text-align: center; border-radius: 5px;">У вас пока нет записей</p>
-                    @endforelse
-                    
-                    <div style="margin-top: 20px;">
-                        {{ $bookings->links() }}
-                    </div>
-                </div>
-
-                <div class="profile-edit">
-                    <h3>Данные профиля</h3>
-                    <form action="{{ route('profile.update') }}" method="POST">
-                        @csrf
-                        <div class="form-group">
-                            <label>Ваше имя</label>
-                            <input type="text" name="name" value="{{ $user->name }}" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Телефон</label>
-                            <input type="text" name="phone" value="{{ $user->phone }}" placeholder="+7 (900) 000-00-00">
-                        </div>
-                        <button type="submit" class="btn-auth">Сохранить</button>
-                    </form>
-
-                </div>
-            </div>
-        </div>
-    @endif
+</div>
 @endif
 @endsection
 

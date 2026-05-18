@@ -123,6 +123,25 @@
 
     .slot-error { color: #c62828; }
 
+    #bookingDate {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 2px solid #eee;
+        border-radius: 5px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        color: var(--text-dark);
+        background: var(--white);
+        transition: border-color 0.3s ease;
+        cursor: pointer;
+    }
+
+    #bookingDate:focus {
+        outline: none;
+        border-color: var(--gold);
+    }
+
     .auth-modal-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -215,7 +234,7 @@
             <div class="booking-step" id="step4">
                 <h3>Выберите дату и время</h3>
                 <div style="margin-top: 20px;">
-                    <input type="date" id="bookingDate" style="width: 100%; padding: 10px; margin-bottom: 20px;" min="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}">
+                    <input type="date" id="bookingDate" min="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}">
                     <div class="selection-grid" id="timeGrid">
                         <p>Пожалуйста, выберите дату.</p>
                     </div>

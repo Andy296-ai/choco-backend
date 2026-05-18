@@ -58,6 +58,27 @@
         position: relative;
     }
 
+    .info-item {
+        margin-top: 20px;
+        padding: 16px;
+        background: var(--white);
+        border-left: 3px solid var(--gold);
+        border-radius: 2px;
+    }
+
+    .info-item h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 16px;
+        color: var(--chocolate);
+        margin-bottom: 6px;
+    }
+
+    .info-item p {
+        font-size: 14px;
+        color: var(--text-light);
+        margin: 0;
+    }
+
     @media (max-width: 900px) {
         .contacts-grid { grid-template-columns: 1fr; }
         .map-container { height: 400px; }
@@ -73,7 +94,7 @@
     </div>
 </div>
 
-<main class="contacts-section">
+<section class="contacts-section">
     <div class="container">
         <div class="contacts-grid">
             <div class="contact-info">
@@ -115,13 +136,13 @@
             </div>
         </div>
     </div>
-</main>
+</section>
 
 <script src="https://api-maps.yandex.ru/2.1/?apikey=e077a285-b9f1-4bda-916c-e4cc55589140&lang=ru_RU" type="text/javascript"></script>
 <script>
     let myMap;
     // Pass salons data to JS
-    const salons = @json($salons);
+    const salons = @json($salons->items());
 
     ymaps.ready(init);
 
