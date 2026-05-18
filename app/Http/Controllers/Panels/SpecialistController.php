@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Booking;
+use App\Models\Client;
 use App\Models\PortfolioItem;
 
 class SpecialistController extends Controller
@@ -53,7 +54,12 @@ class SpecialistController extends Controller
             $query->where('status', $request->status);
         }
         
-        $bookings = $query->orderBy('start_time')->get();
+        // Для календаря нужны все события, для списка — пагинация
+        if ($viewType === 'calendar') {
+            $bookings = $query->orderBy('start_time')->get();
+        } else {
+            $bookings = $query->orderBy('start_time')->paginate(20)->withQueryString();
+        }
 
         // Basic earnings for the specialist
         $earnings = Booking::where('specialist_id', $user->id)
@@ -68,27 +74,32 @@ class SpecialistController extends Controller
     public function clients()
     {
         $user = Auth::user();
-        
-        // Get unique clients who have bookings with this specialist
-        $clients = Booking::with('client', 'service')
-            ->where('specialist_id', $user->id)
-            ->select('client_id')
+
+        // Уникальные client_id для этого специалиста
+        $clientIds = Booking::where('specialist_id', $user->id)
             ->distinct()
-            ->paginate(15);
-            
-        $clients->getCollection()->transform(function ($booking) use ($user) {
-            // For each unique client, find their most recent booking with this specialist
-            $lastBooking = Booking::with('service')
-                ->where('client_id', $booking->client_id)
-                ->where('specialist_id', $user->id)
-                ->orderBy('start_time', 'desc')
-                ->first();
-                
-            return [
-                'client' => $lastBooking->client,
-                'last_booking' => $lastBooking
-            ];
-        });
+            ->pluck('client_id');
+
+        // Пагинация по модели Client — корректный COUNT
+        $clientsPaginated = Client::whereIn('id', $clientIds)
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Последняя запись для каждого клиента — один запрос вместо N+1
+        $lastBookings = Booking::with('service')
+            ->where('specialist_id', $user->id)
+            ->whereIn('client_id', $clientsPaginated->pluck('id'))
+            ->orderBy('start_time', 'desc')
+            ->get()
+            ->groupBy('client_id')
+            ->map(fn($group) => $group->first());
+
+        // Трансформируем с сохранением пагинатора
+        $clients = $clientsPaginated->through(fn($client) => [
+            'client'       => $client,
+            'last_booking' => $lastBookings->get($client->id),
+        ]);
 
         return view('panels.specialist.clients', compact('clients'));
     }

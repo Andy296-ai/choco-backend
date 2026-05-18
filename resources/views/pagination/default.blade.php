@@ -1,46 +1,44 @@
 @if ($paginator->hasPages())
-    <nav role="navigation" aria-label="Pagination Navigation" class="pagination-container">
-        <ul class="pagination">
-            {{-- Previous Page Link --}}
-            @if ($paginator->onFirstPage())
-                <li class="page-item disabled" aria-disabled="true" aria-label="@lang('pagination.previous')">
-                    <span class="page-link" aria-hidden="true">&lsaquo;</span>
-                </li>
-            @else
-                <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="@lang('pagination.previous')">&lsaquo;</a>
-                </li>
-            @endif
+<nav class="choco-pagination" role="navigation" aria-label="Навигация по страницам">
 
-            {{-- Pagination Elements --}}
-            @foreach ($elements as $element)
-                {{-- "Three Dots" Separator --}}
-                @if (is_string($element))
-                    <li class="page-item disabled" aria-disabled="true"><span class="page-link">{{ $element }}</span></li>
-                @endif
+    {{-- Кнопка «Назад» --}}
+    @if ($paginator->onFirstPage())
+        <span class="choco-page choco-page--disabled" aria-disabled="true" aria-label="Назад">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+    @else
+        <a class="choco-page choco-page--arrow" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Назад">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+    @endif
 
-                {{-- Array Of Links --}}
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $paginator->currentPage())
-                            <li class="page-item active" aria-current="page"><span class="page-link">{{ $page }}</span></li>
-                        @else
-                            <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                        @endif
-                    @endforeach
+    {{-- Номера страниц --}}
+    @foreach ($elements as $element)
+        @if (is_string($element))
+            <span class="choco-page choco-page--dots" aria-hidden="true">{{ $element }}</span>
+        @endif
+
+        @if (is_array($element))
+            @foreach ($element as $page => $url)
+                @if ($page == $paginator->currentPage())
+                    <span class="choco-page choco-page--active" aria-current="page">{{ $page }}</span>
+                @else
+                    <a class="choco-page" href="{{ $url }}">{{ $page }}</a>
                 @endif
             @endforeach
+        @endif
+    @endforeach
 
-            {{-- Next Page Link --}}
-            @if ($paginator->hasMorePages())
-                <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="@lang('pagination.next')">&rsaquo;</a>
-                </li>
-            @else
-                <li class="page-item disabled" aria-disabled="true" aria-label="@lang('pagination.next')">
-                    <span class="page-link" aria-hidden="true">&rsaquo;</span>
-                </li>
-            @endif
-        </ul>
-    </nav>
+    {{-- Кнопка «Вперёд» --}}
+    @if ($paginator->hasMorePages())
+        <a class="choco-page choco-page--arrow" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Вперёд">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+    @else
+        <span class="choco-page choco-page--disabled" aria-disabled="true" aria-label="Вперёд">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+    @endif
+
+</nav>
 @endif

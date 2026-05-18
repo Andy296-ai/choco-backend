@@ -203,6 +203,7 @@
             }
         }
     </style>
+    <style>{!! file_get_contents(resource_path('css/pagination.css')) !!}</style>
 </head>
 <body>
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>

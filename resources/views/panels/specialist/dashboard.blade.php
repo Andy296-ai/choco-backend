@@ -369,6 +369,7 @@
             }
         }
     </style>
+    <style>{!! file_get_contents(resource_path('css/pagination.css')) !!}</style>
 </head>
 <body>
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
@@ -486,6 +487,10 @@
                     <p style="color: #888; text-align: center; width: 100%;">Записей не найдено</p>
                 </div>
                 @endforelse
+
+                @if($viewType !== 'calendar')
+                    <div class="choco-pagination-wrap">{{ $bookings->links() }}</div>
+                @endif
             </div>
         </div>
     </div>
