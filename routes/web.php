@@ -21,6 +21,9 @@ Route::get('/contacts', function () {
     return view('contacts', compact('salons'));
 })->name('contacts');
 
+Route::get('/privacy', fn() => view('privacy'))->name('privacy');
+Route::get('/offer', fn() => view('offer'))->name('offer');
+
 Route::get('/gallery', function () {
     $portfolioItems = \App\Models\PortfolioItem::with('user')
         ->orderBy('created_at', 'desc')

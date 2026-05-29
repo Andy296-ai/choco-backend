@@ -416,16 +416,28 @@
                         <li><a href="{{ route('services') }}">Услуги</a></li>
                         <li><a href="{{ route('about') }}">О нас</a></li>
                         <li><a href="{{ route('contacts') }}">Контакты</a></li>
+                        <li><a href="{{ route('gallery') }}">Галерея</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Контакты</h4>
                     <p>г. Сергиев Посад, ул. Вознесенская, 46</p>
                     <p>Тел: +7 (926) 607-07-07</p>
+                    <p style="margin-top:16px;">
+                        <a href="{{ route('privacy') }}" style="color:#aaa; font-size:13px;">Политика конфиденциальности</a>
+                    </p>
+                    <p>
+                        <a href="{{ route('offer') }}" style="color:#aaa; font-size:13px;">Публичная оферта</a>
+                    </p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Салон красоты «Шоколад». Сайт ещё в стадии разработки <a class="linka" href="http://www.shodruz.fun">Шодрузом</a></p>
+                <p>
+                    &copy; 2026 Салон красоты «Шоколад».
+                    <a href="{{ route('privacy') }}" style="color:#666; margin:0 8px;">Политика конфиденциальности</a>·
+                    <a href="{{ route('offer') }}" style="color:#666; margin:0 8px;">Публичная оферта</a>
+                    · Дипломный проект студента: <a href="https://shodruz.fun/about" target="_blank" rel="noopener" style="color:var(--gold); font-weight:600;">Дж. Шодруз</a>
+                </p>
             </div>
         </div>
     </footer>
