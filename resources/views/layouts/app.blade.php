@@ -7,7 +7,7 @@
     <title>@yield('title', 'Шоколад — Салон красоты')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <style>
         :root {
@@ -23,7 +23,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Montserrat', sans-serif; background-color: var(--cream); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
-        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        h1, h2, h3 { font-family: 'Raleway', sans-serif; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
         /* Header */
@@ -119,7 +119,7 @@
         /* Footer */
         footer { background-color: var(--chocolate); color: var(--white); padding: 60px 0 30px; margin-top: 50px; }
         .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-section h4 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); margin-bottom: 20px; }
+        .footer-section h4 { font-family: 'Raleway', sans-serif; font-size: 20px; color: var(--gold); margin-bottom: 20px; }
         .footer-section p, .footer-section li { font-size: 14px; margin-bottom: 10px; color: #ccc; }
         .footer-section ul { list-style: none; }
         .footer-section a { color: #ccc; text-decoration: none; transition: color 0.3s ease; }

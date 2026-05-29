@@ -42,7 +42,7 @@
     }
 
     .chart-card h3 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         margin: 0 0 20px;
     }
@@ -57,7 +57,7 @@
     }
 
     .table-container h3 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         margin: 0 0 20px;
     }
@@ -100,7 +100,7 @@
 
 @section('content')
     <div class="header">
-        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate);">Панель Директора</h1>
+        <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate);">Панель Директора</h1>
     </div>
 
     <div class="dashboard-grid">

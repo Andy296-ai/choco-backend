@@ -15,7 +15,7 @@
 
     .db-table-header h1 {
         margin: 0;
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         font-size: 24px;
     }

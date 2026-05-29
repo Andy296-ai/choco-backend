@@ -51,7 +51,7 @@
 @section('content')
     <div class="header">
         <div>
-            <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate);">База данных</h1>
+            <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate);">База данных</h1>
             <p style="color:#777; margin:4px 0 0; font-size:13px;">Просмотр и управление таблицами проекта</p>
         </div>
     </div>

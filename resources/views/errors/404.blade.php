@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>404 — Страница не найдена</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --chocolate: #3E2723;
@@ -35,7 +35,7 @@
         }
         
         .error-code {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             font-size: 150px;
             color: var(--chocolate);
             line-height: 1;
@@ -44,7 +44,7 @@
         }
         
         .error-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             font-size: 36px;
             color: var(--chocolate);
             margin-bottom: 15px;

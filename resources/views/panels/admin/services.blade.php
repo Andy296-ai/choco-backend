@@ -132,7 +132,7 @@
             @empty
             <li style="padding:50px 20px; text-align:center; color:#888;">
                 <div style="font-size:40px; margin-bottom:12px; opacity:0.3;">💅</div>
-                <strong style="display:block; font-family:'Playfair Display',serif; color:var(--chocolate); margin-bottom:6px;">Услуг пока нет</strong>
+                <strong style="display:block; font-family:'Raleway',serif; color:var(--chocolate); margin-bottom:6px;">Услуг пока нет</strong>
                 <span style="font-size:13px;">Нажмите «+ Новая услуга», чтобы добавить</span>
             </li>
             @endforelse

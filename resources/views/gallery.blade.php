@@ -67,7 +67,7 @@
     }
 
     .gallery-item-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         font-size: 20px;
         color: var(--chocolate);
         margin-bottom: 10px;
@@ -131,7 +131,7 @@
     }
 
     #lightbox-caption .lb-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         font-size: 20px;
         margin-bottom: 6px;
     }

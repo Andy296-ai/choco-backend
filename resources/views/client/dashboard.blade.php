@@ -38,7 +38,7 @@
 
         .client-profile-info h2 {
             margin: 0 0 6px;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             font-size: 22px;
         }
 
@@ -96,7 +96,7 @@
 
         .next-booking-card h4 {
             margin: 0 0 6px;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             color: var(--chocolate);
             font-size: 16px;
         }
@@ -131,7 +131,7 @@
         }
 
         .dash-card h3 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             color: var(--chocolate);
             margin: 0 0 16px;
             font-size: 18px;

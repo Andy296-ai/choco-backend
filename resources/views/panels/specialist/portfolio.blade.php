@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Портфолио — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         {!! file_get_contents(resource_path('css/modals.css')) !!}
         {!! file_get_contents(resource_path('css/pagination.css')) !!}
@@ -65,7 +65,7 @@
         .sidebar-top { padding: 30px 20px 20px; flex-shrink: 0; }
 
         .sidebar h2 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             color: var(--gold);
             margin: 0 0 30px;
             text-align: center;
@@ -321,7 +321,7 @@
         }
 
         #lightbox-caption .lb-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             font-size: 18px;
             font-weight: 700;
             margin-bottom: 6px;
@@ -349,7 +349,7 @@
             color: #888;
         }
         .empty-state-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.35; }
-        .empty-state h3 { font-family: 'Playfair Display',serif; color: var(--chocolate); margin-bottom: 8px; }
+        .empty-state h3 { font-family: 'Raleway',serif; color: var(--chocolate); margin-bottom: 8px; }
 
         /* Мобильные */
         @media (max-width: 768px) {

@@ -66,7 +66,7 @@
 
 @section('content')
     <div class="header" style="margin-bottom:24px;">
-        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate); font-size:22px;">
+        <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate); font-size:22px;">
             Новая запись в <span style="color:var(--gold);">{{ $table }}</span>
         </h1>
         <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">← К таблице</a>

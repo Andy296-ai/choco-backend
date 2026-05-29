@@ -9,7 +9,7 @@
     }
 
     .db-edit-card h1 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         font-size: 22px;
         margin: 0 0 24px;
@@ -84,7 +84,7 @@
 @section('content')
     <div class="header" style="margin-bottom:24px;">
         <div>
-            <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate); font-size:22px;">
+            <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate); font-size:22px;">
                 Редактировать запись
                 <span style="color:var(--gold);">#{{ $id }}</span>
                 в&nbsp;<span style="color:var(--gold);">{{ $table }}</span>

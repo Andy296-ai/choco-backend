@@ -35,7 +35,7 @@
     }
 
     .client-panel-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         font-size: 28px;
         color: var(--chocolate);
         margin-bottom: 28px;
@@ -62,7 +62,7 @@
     }
 
     .client-booking-row h4 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         font-size: 20px;
         color: var(--chocolate);
         margin-bottom: 12px;
@@ -151,7 +151,7 @@
     }
 
     .client-empty h3 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         margin-bottom: 12px;
         font-size: 24px;

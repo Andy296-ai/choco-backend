@@ -16,7 +16,7 @@
 
     .finance-header-row h1 {
         margin: 0;
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         font-size: 28px;
     }
@@ -108,7 +108,7 @@
     .chart-container { height: 280px; position: relative; }
 
     .card-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         margin: 0 0 20px;
         display: flex;

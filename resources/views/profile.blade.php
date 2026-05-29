@@ -27,7 +27,7 @@
     }
 
     .auth-card h2 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         margin-bottom: 25px;
         text-align: center;

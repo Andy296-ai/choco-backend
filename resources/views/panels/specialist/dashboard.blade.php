@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Панель Специалиста — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
     <style>
         :root {
@@ -43,7 +43,7 @@
         .sidebar-top { padding: 30px 20px 20px; flex-shrink: 0; }
 
         .sidebar h2 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             color: var(--gold);
             margin: 0 0 30px;
             text-align: center;
@@ -544,7 +544,7 @@
                 @empty
                 <div style="text-align:center; padding:50px 20px; color:#888;">
                     <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📅</div>
-                    <h3 style="font-family:'Playfair Display',serif; color:var(--chocolate); margin-bottom:8px; font-size:18px;">Записей не найдено</h3>
+                    <h3 style="font-family:'Raleway',serif; color:var(--chocolate); margin-bottom:8px; font-size:18px;">Записей не найдено</h3>
                     <p style="font-size:14px; margin:0;">На выбранный период нет записей</p>
                 </div>
                 @endforelse

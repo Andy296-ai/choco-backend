@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Мои клиенты — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --chocolate: #3E2723;
@@ -60,7 +60,7 @@
         .sidebar-top { padding: 30px 20px 20px; flex-shrink: 0; }
 
         .sidebar h2 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Raleway', sans-serif;
             color: var(--gold);
             margin: 0 0 30px;
             text-align: center;
@@ -293,7 +293,7 @@
                             <td colspan="5">
                                 <div style="text-align:center; padding:50px 20px; color:#888;">
                                     <div style="font-size:44px; margin-bottom:14px; opacity:0.3;">👥</div>
-                                    <strong style="font-family:'Playfair Display',serif; color:var(--chocolate); font-size:16px; display:block; margin-bottom:8px;">Клиентов пока нет</strong>
+                                    <strong style="font-family:'Raleway',serif; color:var(--chocolate); font-size:16px; display:block; margin-bottom:8px;">Клиентов пока нет</strong>
                                     <span style="font-size:13px;">Клиенты появятся здесь после первых записей</span>
                                 </div>
                             </td>

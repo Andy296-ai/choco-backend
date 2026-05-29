@@ -22,7 +22,7 @@
     }
 
     .section-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         font-size: 20px;
         margin: 0 0 5px;
@@ -66,7 +66,7 @@
 
 @section('content')
     <div class="header">
-        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate);">Сотрудники</h1>
+        <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate);">Сотрудники</h1>
         <button class="btn-add" onclick="openModal('modal-employee-add')">+ Добавить сотрудника</button>
     </div>
 

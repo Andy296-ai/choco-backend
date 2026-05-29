@@ -22,7 +22,7 @@
 
     .salon-card h2 {
         margin: 0 0 12px;
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         color: var(--chocolate);
         font-size: 20px;
     }
@@ -73,7 +73,7 @@
 
 @section('content')
     <div class="header">
-        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate);">Управление салонами</h1>
+        <h1 style="margin:0; font-family:'Raleway',serif; color:var(--chocolate);">Управление салонами</h1>
         <button class="btn-add" onclick="openModal('modal-salon-add')">+ Добавить салон</button>
     </div>
 
@@ -113,7 +113,7 @@
     @if($salons->isEmpty())
     <div style="text-align:center; padding:60px 20px; color:#888;">
         <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">🏪</div>
-        <h3 style="color:var(--chocolate); font-family:'Playfair Display',serif; margin-bottom:8px;">Салоны не добавлены</h3>
+        <h3 style="color:var(--chocolate); font-family:'Raleway',serif; margin-bottom:8px;">Салоны не добавлены</h3>
         <p>Нажмите «Добавить салон», чтобы создать первый</p>
     </div>
     @endif

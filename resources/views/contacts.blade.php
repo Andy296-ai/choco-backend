@@ -67,7 +67,7 @@
     }
 
     .info-item h4 {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Raleway', sans-serif;
         font-size: 16px;
         color: var(--chocolate);
         margin-bottom: 6px;

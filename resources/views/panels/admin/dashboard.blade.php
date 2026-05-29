@@ -244,7 +244,7 @@
             @empty
             <div style="text-align:center; padding:60px 20px; color:#888;">
                 <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📋</div>
-                <h3 style="font-family:'Playfair Display',serif; color:var(--chocolate); margin-bottom:8px; font-size:18px;">Записей не найдено</h3>
+                <h3 style="font-family:'Raleway',serif; color:var(--chocolate); margin-bottom:8px; font-size:18px;">Записей не найдено</h3>
                 <p style="font-size:14px; margin:0 0 20px;">Попробуйте изменить параметры поиска или создайте новую запись</p>
                 <button class="logout-btn" style="background:var(--gold); border:none; color:var(--chocolate); font-weight:600;" data-modal="modal-booking-add" onclick="openModal('modal-booking-add')">+ Создать запись</button>
             </div>
