@@ -15,7 +15,11 @@
     /* Hero Section */
     .hero {
         height: 100vh;
-        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1560750588-73207b1ef5b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+        background: linear-gradient(
+                rgba(20,10,8,0.65),
+                rgba(20,10,8,0.65)
+            ),
+            url('https://images.unsplash.com/photo-1560750588-73207b1ef5b8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
         background-size: cover;
         background-position: center;
         display: flex;
@@ -30,16 +34,19 @@
         font-size: 64px;
         margin-bottom: 20px;
         animation: fadeInUp 1s ease;
+        text-shadow: 0 2px 16px rgba(0,0,0,0.55);
     }
 
     .hero-content p {
         font-size: 18px;
         margin-bottom: 30px;
-        font-weight: 300;
+        font-weight: 400;
         max-width: 600px;
         margin-left: auto;
         margin-right: auto;
         animation: fadeInUp 1.2s ease;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+        opacity: 0.95;
     }
 
     .btn {

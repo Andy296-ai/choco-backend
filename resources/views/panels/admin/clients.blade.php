@@ -79,23 +79,27 @@
                 <h3>Новый клиент</h3>
                 <button class="close-modal" onclick="closeModal('modal-client-add')">&times;</button>
             </div>
-            <form action="{{ Auth::user()->role === 'director' ? route('director.clients.store') : route('admin.clients.store') }}" method="POST" class="ajax-form modal-form" onsubmit="handleFormSubmit(event)">
+            <form id="form-client-add" action="{{ Auth::user()->role === 'director' ? route('director.clients.store') : route('admin.clients.store') }}" method="POST" class="modal-form" data-custom-submit="true">
                 @csrf
                 <div class="form-group">
-                    <label>Имя</label>
-                    <input type="text" name="name" required>
+                    <label>Имя *</label>
+                    <input type="text" name="name" required placeholder="Иванова Мария">
                 </div>
                 <div class="form-group">
                     <label>Телефон</label>
-                    <input type="text" name="phone">
+                    <input type="text" name="phone" placeholder="+7 999 123-45-67">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="example@mail.ru">
                 </div>
                 <div class="form-group">
                     <label>Telegram (@username)</label>
-                    <input type="text" name="telegram_username">
+                    <input type="text" name="telegram_username" placeholder="username">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeModal('modal-client-add')">Отмена</button>
-                    <button type="submit" class="btn-confirm">Создать</button>
+                    <button type="submit" class="btn-confirm" id="btn-client-add-submit">Создать</button>
                 </div>
             </form>
         </div>
@@ -213,26 +217,35 @@
             });
         }
         
-        function handleFormSubmit(e) {
+        document.getElementById('form-client-add').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const form = e.target;
-            fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+            const btn = document.getElementById('btn-client-add-submit');
+            btn.disabled = true;
+            btn.textContent = 'Сохранение...';
+            try {
+                const res = await fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    if (typeof showToast === 'function') showToast(data.message || 'Клиент добавлен', 'success');
+                    setTimeout(() => location.reload(), 900);
+                } else {
+                    if (typeof showToast === 'function') showToast(data.message || 'Ошибка', 'error');
+                    else alert(data.message || 'Ошибка');
                 }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.error) alert(data.error);
-                else location.reload();
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Произошла ошибка');
-            });
-        }
+            } catch (err) {
+                if (typeof showToast === 'function') showToast('Ошибка сети', 'error');
+                else alert('Ошибка сети');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Создать';
+        });
     </script>
 @endsection
 

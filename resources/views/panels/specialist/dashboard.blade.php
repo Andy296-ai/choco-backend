@@ -32,18 +32,58 @@
             background-color: var(--chocolate);
             color: var(--white);
             position: fixed;
-            padding: 30px 20px;
-            overflow-y: auto;
-            z-index: 100;
+            top: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow: hidden;
         }
+
+        .sidebar-top { padding: 30px 20px 20px; flex-shrink: 0; }
 
         .sidebar h2 {
             font-family: 'Playfair Display', serif;
             color: var(--gold);
-            margin-bottom: 40px;
+            margin: 0 0 30px;
             text-align: center;
             font-size: 20px;
         }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+
+        .sidebar-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(212,175,55,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: var(--gold);
+            flex-shrink: 0; overflow: hidden;
+        }
+        .sidebar-user-info { flex: 1; min-width: 0; }
+        .sidebar-user-name {
+            font-size: 13px; font-weight: 600; color: var(--white);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+        }
+        .sidebar-user-role { font-size: 11px; color: rgba(255,255,255,0.5); display: block; margin-top: 2px; }
+
+        .sidebar-logout-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.75);
+            padding: 8px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 12px; font-family: 'Montserrat', sans-serif; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: background 0.2s, color 0.2s; text-align: center;
+        }
+        .sidebar-logout-btn:hover { background: rgba(244,67,54,0.25); border-color: rgba(244,67,54,0.4); color: #ff8a80; }
 
         .nav-menu {
             list-style: none;
@@ -256,15 +296,24 @@
             position: fixed;
             top: 15px;
             left: 15px;
-            z-index: 1000;
+            z-index: 1100;
             background: var(--chocolate);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 10px 14px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 20px;
+            line-height: 1;
         }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 900;
+        }
+        .sidebar-overlay.active { display: block; }
 
         .earnings-info {
             text-align: right;
@@ -373,8 +422,10 @@
 </head>
 <body>
     <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-    
-    <div class="sidebar" id="sidebar">
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
         <h2>ШОКОЛАД</h2>
         <ul class="nav-menu">
             <li class="nav-item"><a href="{{ route('specialist.dashboard') }}" class="active">Мой график</a></li>
@@ -383,19 +434,27 @@
             <li class="nav-item"><a href="{{ route('specialist.portfolio') }}">Портфолио</a></li>
         </ul>
     </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name ?? 'М', 0, 1)) }}</div>
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name">{{ auth()->user()->name ?? '—' }}</span>
+                <span class="sidebar-user-role">Мастер</span>
+            </div>
+        </div>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="sidebar-logout-btn">Выйти</button>
+        </form>
+    </div>
+</div>
 
     <div class="main-content">
         <div class="header">
             <h1>Панель Специалиста</h1>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <div class="earnings-info">
-                    <span>Доход за месяц:</span>
-                    <strong>{{ number_format($earnings, 0, '.', ' ') }} ₽</strong>
-                </div>
-                <form action="{{ route('logout') }}" method="POST" style="display:inline;">
-                    @csrf
-                    <button type="submit" class="logout-btn">Выйти</button>
-                </form>
+            <div class="earnings-info">
+                <span>Доход за месяц:</span>
+                <strong>{{ number_format($earnings, 0, '.', ' ') }} ₽</strong>
             </div>
         </div>
 
@@ -483,8 +542,10 @@
                     </div>
                 </div>
                 @empty
-                <div class="schedule-item">
-                    <p style="color: #888; text-align: center; width: 100%;">Записей не найдено</p>
+                <div style="text-align:center; padding:50px 20px; color:#888;">
+                    <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">📅</div>
+                    <h3 style="font-family:'Playfair Display',serif; color:var(--chocolate); margin-bottom:8px; font-size:18px;">Записей не найдено</h3>
+                    <p style="font-size:14px; margin:0;">На выбранный период нет записей</p>
                 </div>
                 @endforelse
 
@@ -501,21 +562,14 @@
         // Мобильное меню
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const sidebar = document.getElementById('sidebar');
-        
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function openSidebar()  { sidebar.classList.add('open'); sidebarOverlay.classList.add('active'); }
+        function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); }
+
         if (mobileMenuToggle) {
-            mobileMenuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
-            
-            // Закрытие меню при клике вне его
-            document.addEventListener('click', function(event) {
-                if (window.innerWidth <= 768 && 
-                    !sidebar.contains(event.target) && 
-                    !mobileMenuToggle.contains(event.target) &&
-                    sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('open');
-                }
-            });
+            mobileMenuToggle.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+            sidebarOverlay.addEventListener('click', closeSidebar);
         }
         
         // Переключение вида

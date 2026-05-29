@@ -12,6 +12,8 @@ class ContactSeeder extends Seeder
      */
     public function run(): void
     {
+        \Illuminate\Support\Facades\DB::table('contacts')->truncate();
+
         $contacts = [
             // Salon 1 - Хотьково
             [

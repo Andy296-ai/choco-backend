@@ -112,15 +112,46 @@ class SpecialistController extends Controller
 
     public function storePortfolio(Request $request)
     {
-        $validated = $request->validate([
-            'image_path' => 'required|url', // For now, we use URLs for simplicity, but could be file upload
-            'title' => 'nullable|string|max:255',
+        $request->validate([
+            'image_file' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
+            'image_path' => 'nullable|url',
+            'title'       => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $item = Auth::user()->portfolioItems()->create($validated);
+        if ($request->hasFile('image_file') && $request->file('image_file')->isValid()) {
+            $path = $request->file('image_file')->store('portfolio', 'public');
+            $imagePath = '/storage/' . $path;
+        } elseif ($request->filled('image_path')) {
+            $imagePath = $request->image_path;
+        } else {
+            return response()->json(['message' => 'Необходимо загрузить файл или указать ссылку'], 422);
+        }
+
+        $item = Auth::user()->portfolioItems()->create([
+            'image_path'  => $imagePath,
+            'title'       => $request->title,
+            'description' => $request->description,
+        ]);
 
         return response()->json(['message' => 'Работа добавлена в портфолио', 'item' => $item]);
+    }
+
+    public function updatePortfolio(Request $request, PortfolioItem $item)
+    {
+        if ($item->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Доступ запрещён'], 403);
+        }
+
+        $validated = $request->validate([
+            'image_path'  => 'required|url',
+            'title'       => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $item->update($validated);
+
+        return response()->json(['message' => 'Работа обновлена', 'item' => $item]);
     }
 
     public function deletePortfolio(PortfolioItem $item)

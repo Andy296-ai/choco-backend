@@ -12,6 +12,8 @@ class ServiceSeeder extends Seeder
      */
     public function run(): void
     {
+        \Illuminate\Support\Facades\DB::table('services')->truncate();
+
         $services = [
             // Парикмахерские услуги
             [

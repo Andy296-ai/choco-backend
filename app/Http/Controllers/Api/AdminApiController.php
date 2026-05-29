@@ -147,27 +147,40 @@ class AdminApiController extends Controller
     public function storeClient(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'name'              => 'required|string|max:255',
+            'phone'             => 'nullable|string|max:255',
+            'email'             => 'nullable|email|max:255',
             'telegram_username' => 'nullable|string|max:255',
         ]);
 
-        $baseEmail = $validated['telegram_username'] 
-            ? $validated['telegram_username'] . '@client.local'
-            : 'client_' . time() . '@client.local';
-        $email = $baseEmail;
-        $counter = 1;
-        while (Client::where('email', $email)->exists()) {
-            $email = str_replace('@client.local', '_' . $counter . '@client.local', $baseEmail);
-            $counter++;
+        // Определяем email: приоритет — введённый вручную, затем из telegram, затем авто
+        if (!empty($validated['email'])) {
+            $email = $validated['email'];
+            if (Client::where('email', $email)->exists()) {
+                return response()->json(['message' => 'Клиент с таким email уже существует'], 422);
+            }
+        } else {
+            $baseEmail = $validated['telegram_username']
+                ? $validated['telegram_username'] . '@client.local'
+                : 'client_' . time() . '@client.local';
+            $email = $baseEmail;
+            $counter = 1;
+            while (Client::where('email', $email)->exists()) {
+                $email = str_replace('@client.local', '_' . $counter . '@client.local', $baseEmail);
+                $counter++;
+            }
         }
 
+        // Привязываем клиента к салону текущего пользователя
+        $salonId = auth()->user()?->salon_id ?? null;
+
         $client = Client::create([
-            'name' => $validated['name'],
-            'email' => $email,
-            'phone' => $validated['phone'] ?? null,
-            'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+            'name'              => $validated['name'],
+            'email'             => $email,
+            'phone'             => $validated['phone'] ?? null,
+            'password'          => bcrypt(\Illuminate\Support\Str::random(16)),
             'telegram_username' => $validated['telegram_username'] ?? null,
+            'salon_id'          => $salonId,
         ]);
 
         return response()->json(['message' => 'Клиент успешно добавлен', 'client' => $client]);

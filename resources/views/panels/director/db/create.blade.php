@@ -1,234 +1,131 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Создание записи в {{ $table }} — Управление БД</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
+@extends('layouts.director')
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
+@section('title', 'Новая запись — ' . $table)
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
+@section('styles')
+<style>
+    .db-create-card { max-width: 720px; }
 
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
+    .form-group { margin-bottom: 16px; }
 
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 5px;
+    }
 
-        .nav-item {
-            margin-bottom: 15px;
-        }
+    .form-group label .type-hint {
+        color: #bbb;
+        font-weight: 400;
+        text-transform: none;
+        font-size: 11px;
+    }
 
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
 
-        .nav-item a:hover,
-        .nav-item a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--gold);
-        }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--gold); }
 
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
+    .form-group textarea { resize: vertical; min-height: 80px; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+    .error-msg  { font-size: 12px; color: #f44336; margin-top: 4px; }
+    .required-star { color: #f44336; }
 
-        .header h1 {
-            margin: 0;
-            color: var(--chocolate);
-            font-family: 'Playfair Display', serif;
-        }
+    .btn {
+        display: inline-block;
+        padding: 10px 22px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-gold { background: var(--gold); color: var(--chocolate); }
+    .btn-grey { background: #eee; color: #555; }
+</style>
+@endsection
 
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: var(--gold);
-            color: var(--chocolate);
-        }
-
-        .btn-secondary {
-            background: #eee;
-            color: #555;
-        }
-
-        .card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            max-width: 800px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 13px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .required {
-            color: #f44336;
-        }
-
-        .error {
-            font-size: 12px;
-            color: #f44336;
-            margin-top: 3px;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('director.dashboard') }}">Дашборд</a></li>
-            <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
-            <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
-            <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
-            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
-            <li class="nav-item"><a href="{{ route('director.db.index') }}" class="active">База данных</a></li>
-        </ul>
+@section('content')
+    <div class="header" style="margin-bottom:24px;">
+        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate); font-size:22px;">
+            Новая запись в <span style="color:var(--gold);">{{ $table }}</span>
+        </h1>
+        <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">← К таблице</a>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <div>
-                <h1>Новая запись в таблице {{ $table }}</h1>
+    <div class="content-card db-create-card">
+        @if($errors->any())
+            <div style="background:#ffebee; color:#c62828; padding:12px 16px; border-radius:6px; margin-bottom:16px; font-size:13px;">
+                <ul style="margin:0; padding-left:18px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-            <div>
-                <a href="{{ route('director.db.table', $table) }}" class="btn btn-secondary">← К таблице</a>
-            </div>
-        </div>
+        @endif
 
-        <div class="card">
-            <form method="POST" action="{{ route('director.db.store', $table) }}">
-                @csrf
+        <form method="POST" action="{{ route('director.db.store', $table) }}">
+            @csrf
 
-                @foreach($formColumns as $column)
-                    @php
-                        $inputType = 'text';
-                        if (strpos($column['type'], 'int') !== false) {
-                            $inputType = 'number';
-                        } elseif (strpos($column['type'], 'decimal') !== false ||
-                            strpos($column['type'], 'float') !== false ||
-                            strpos($column['type'], 'double') !== false
-                        ) {
-                            $inputType = 'number';
-                        } elseif (strpos($column['type'], 'date') !== false && strpos($column['type'], 'time') === false) {
-                            $inputType = 'date';
-                        } elseif (strpos($column['type'], 'datetime') !== false || strpos($column['type'], 'timestamp') !== false) {
-                            $inputType = 'datetime-local';
-                        } elseif (strpos($column['type'], 'time') !== false) {
-                            $inputType = 'time';
-                        } elseif (strpos($column['type'], 'text') !== false || ($column['max_length'] && $column['max_length'] > 255)) {
-                            $inputType = 'textarea';
-                        } elseif ($column['name'] === 'email' || strpos($column['name'], 'email') !== false) {
-                            $inputType = 'email';
-                        } elseif ($column['name'] === 'password' || strpos($column['name'], 'password') !== false) {
-                            $inputType = 'password';
-                        }
-                    @endphp
-                    <div class="form-group">
-                        <label>
-                            {{ $column['name'] }}
-                            @if(!$column['nullable'] && $column['default'] === null)
-                                <span class="required">*</span>
-                            @endif
-                            <span style="font-size:11px; color:#999;">({{ $column['type'] }})</span>
-                        </label>
-                        @if($inputType === 'textarea')
-                            <textarea
-                                name="{{ $column['name'] }}"
-                            >{{ old($column['name'], $column['default']) }}</textarea>
-                        @else
-                            <input
-                                type="{{ $inputType }}"
-                                name="{{ $column['name'] }}"
-                                value="{{ old($column['name'], $column['default']) }}"
-                            >
+            @foreach($formColumns as $column)
+                @php
+                    $inputType = 'text';
+                    if (str_contains($column['type'], 'int'))      $inputType = 'number';
+                    elseif (str_contains($column['type'], 'decimal') || str_contains($column['type'], 'float')) $inputType = 'number';
+                    elseif (str_contains($column['type'], 'datetime') || str_contains($column['type'], 'timestamp')) $inputType = 'datetime-local';
+                    elseif (str_contains($column['type'], 'date'))  $inputType = 'date';
+                    elseif (str_contains($column['type'], 'time'))  $inputType = 'time';
+                    elseif (str_contains($column['type'], 'text') || ($column['max_length'] && $column['max_length'] > 255)) $inputType = 'textarea';
+                    elseif (str_contains($column['name'], 'email')) $inputType = 'email';
+                    elseif (str_contains($column['name'], 'password')) $inputType = 'password';
+                @endphp
+
+                <div class="form-group">
+                    <label>
+                        {{ $column['name'] }}
+                        @if(!$column['nullable'] && $column['default'] === null)
+                            <span class="required-star">*</span>
                         @endif
-                        @error($column['name'])
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                @endforeach
+                        <span class="type-hint">{{ $column['type'] }}</span>
+                    </label>
 
-                <div style="margin-top:20px; display:flex; gap:10px;">
-                    <a href="{{ route('director.db.table', $table) }}" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">Создать</button>
+                    @if($inputType === 'textarea')
+                        <textarea name="{{ $column['name'] }}">{{ old($column['name'], $column['default']) }}</textarea>
+                    @else
+                        <input type="{{ $inputType }}"
+                               name="{{ $column['name'] }}"
+                               value="{{ old($column['name'], $column['default']) }}">
+                    @endif
+
+                    @error($column['name'])
+                        <div class="error-msg">{{ $message }}</div>
+                    @enderror
                 </div>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
+            @endforeach
 
+            <div style="display:flex; gap:10px; margin-top:24px;">
+                <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">Отмена</a>
+                <button type="submit" class="btn btn-gold">Создать запись</button>
+            </div>
+        </form>
+    </div>
+@endsection

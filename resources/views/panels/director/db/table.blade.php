@@ -1,286 +1,217 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Таблица {{ $table }} — Управление БД</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
+@extends('layouts.director')
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
+@section('title', 'Таблица ' . $table . ' — Шоколад')
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
+@section('styles')
+<style>
+    .db-table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
 
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
+    .db-table-header h1 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+        color: var(--chocolate);
+        font-size: 24px;
+    }
 
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
+    .db-table-header p { color: #888; margin: 4px 0 0; font-size: 13px; }
 
-        .nav-item {
-            margin-bottom: 15px;
-        }
+    .btn {
+        display: inline-block;
+        padding: 9px 18px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-gold     { background: var(--gold); color: var(--chocolate); }
+    .btn-grey     { background: #eee; color: #555; }
+    .btn-danger   { background: #f44336; color: #fff; }
+    .btn-choco    { background: var(--chocolate); color: #fff; }
+    .btn-sm       { padding: 5px 12px; font-size: 12px; }
 
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
+    .filter-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
 
-        .nav-item a:hover,
-        .nav-item a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--gold);
-        }
+    .filter-bar input {
+        padding: 9px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 13px;
+        outline: none;
+        flex: 1;
+        min-width: 180px;
+    }
 
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
+    .filter-bar input:focus { border-color: var(--gold); }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+    .db-table-wrap { overflow-x: auto; }
 
-        .header h1 {
-            margin: 0;
-            color: var(--chocolate);
-            font-family: 'Playfair Display', serif;
-        }
+    .db-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
 
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            text-decoration: none;
-        }
+    .db-table th {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 2px solid #f0f0f0;
+        color: #888;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-        .btn-primary {
-            background: var(--gold);
-            color: var(--chocolate);
-        }
+    .db-table th a {
+        color: inherit;
+        text-decoration: none;
+    }
 
-        .btn-secondary {
-            background: #eee;
-            color: #555;
-        }
+    .db-table th a:hover { color: var(--chocolate); }
 
-        .btn-danger {
-            background: #f44336;
-            color: #fff;
-        }
+    .db-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f5f5f5;
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-        .card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
+    .db-table tr:hover td { background: #fafafa; }
 
-        .filters {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+    .badge-null { color: #bbb; font-style: italic; font-size: 12px; }
 
-        .filters input {
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 13px;
-        }
+    .actions-cell { text-align: right; white-space: nowrap; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+    @media (max-width: 768px) {
+        .db-table-header { flex-direction: column; }
+        .db-table-header .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .db-table td { max-width: 120px; }
+    }
+</style>
+@endsection
 
-        th {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 2px solid #f0f0f0;
-            font-size: 12px;
-            color: #777;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #f5f5f5;
-            font-size: 13px;
-        }
-
-        th a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .pagination {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            font-size: 13px;
-        }
-
-        .badge-null {
-            color: #999;
-            font-style: italic;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('director.dashboard') }}">Дашборд</a></li>
-            <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
-            <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
-            <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
-            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
-            <li class="nav-item"><a href="{{ route('director.db.index') }}" class="active">База данных</a></li>
-        </ul>
+@section('content')
+    <div class="db-table-header">
+        <div>
+            <h1>Таблица: <span style="color:var(--gold);">{{ $table }}</span></h1>
+            <p>Всего записей: {{ $rows->total() }}</p>
+        </div>
+        <div class="btn-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ route('director.db.index') }}" class="btn btn-grey">← Список таблиц</a>
+            <a href="{{ route('director.db.create', $table) }}" class="btn btn-gold">+ Добавить запись</a>
+        </div>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <div>
-                <h1>Таблица: {{ $table }}</h1>
-                <p style="color:#777; margin-top:5px;">Всего записей: {{ $rows->total() }}</p>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <a href="{{ route('director.db.index') }}" class="btn btn-secondary">← К списку таблиц</a>
-                <a href="{{ route('director.db.create', $table) }}" class="btn btn-primary">+ Добавить запись</a>
-            </div>
-        </div>
+    <div class="content-card">
+        <form method="GET" action="{{ route('director.db.table', $table) }}" class="filter-bar">
+            <input type="text" name="search" value="{{ $search }}" placeholder="Поиск по таблице...">
+            <input type="hidden" name="sort" value="{{ $sortColumn }}">
+            <input type="hidden" name="direction" value="{{ $sortDirection }}">
+            <button type="submit" class="btn btn-grey">Поиск</button>
+            @if($search)
+                <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">Сбросить</a>
+            @endif
+        </form>
 
-        <div class="card">
-            <form method="GET" action="{{ route('director.db.table', $table) }}" class="filters">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ $search }}"
-                    placeholder="Поиск по таблице..."
-                >
-                <button type="submit" class="btn btn-secondary">Поиск</button>
-                @if($search)
-                    <a href="{{ route('director.db.table', $table) }}" class="btn btn-secondary">Сбросить</a>
-                @endif
-            </form>
+        @if(session('success'))
+            <div style="background:#e8f5e9; color:#2e7d32; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:13px;">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div style="background:#ffebee; color:#c62828; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:13px;">
+                {{ session('error') }}
+            </div>
+        @endif
 
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
+        <div class="db-table-wrap">
+            <table class="db-table">
+                <thead>
+                    <tr>
+                        @foreach($columns as $column)
+                            <th>
+                                <a href="{{ route('director.db.table', [
+                                    'table'     => $table,
+                                    'sort'      => $column['name'],
+                                    'direction' => $sortColumn === $column['name'] && $sortDirection === 'asc' ? 'desc' : 'asc',
+                                    'search'    => $search,
+                                ]) }}">
+                                    {{ $column['name'] }}
+                                    @if($sortColumn === $column['name'])
+                                        {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+                                    @endif
+                                </a>
+                            </th>
+                        @endforeach
+                        <th style="text-align:right;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($rows as $row)
+                        @php
+                            $pkCol = 'id';
+                            foreach ($columns as $col) {
+                                if ($col['primary']) { $pkCol = $col['name']; break; }
+                            }
+                            $pkVal = $row->{$pkCol};
+                        @endphp
                         <tr>
                             @foreach($columns as $column)
-                                <th>
-                                    <a href="{{ route('director.db.table', [
-                                        'table' => $table,
-                                        'sort' => $column['name'],
-                                        'direction' => $sortColumn === $column['name'] && $sortDirection === 'asc' ? 'desc' : 'asc',
-                                        'search' => $search,
-                                    ]) }}">
-                                        {{ $column['name'] }}
-                                        @if($sortColumn === $column['name'])
-                                            {{ $sortDirection === 'asc' ? '↑' : '↓' }}
-                                        @endif
-                                    </a>
-                                </th>
+                                @php $val = $row->{$column['name']}; @endphp
+                                <td title="{{ $val }}">
+                                    @if($val === null)
+                                        <span class="badge-null">NULL</span>
+                                    @elseif(is_string($val) && mb_strlen($val) > 60)
+                                        {{ mb_substr($val, 0, 60) }}…
+                                    @else
+                                        {{ $val }}
+                                    @endif
+                                </td>
                             @endforeach
-                            <th style="text-align:right;">Действия</th>
+                            <td class="actions-cell">
+                                <a href="{{ route('director.db.edit', [$table, $pkVal]) }}"
+                                   class="btn btn-grey btn-sm">Редактировать</a>
+                                <form method="POST"
+                                      action="{{ route('director.db.destroy', [$table, $pkVal]) }}"
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Удалить эту запись?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rows as $row)
-                            <tr>
-                                @foreach($columns as $column)
-                                    @php
-                                        $value = $row->{$column['name']};
-                                    @endphp
-                                    <td>
-                                        @if($value === null)
-                                            <span class="badge-null">NULL</span>
-                                        @elseif(is_string($value) && mb_strlen($value) > 80)
-                                            {{ mb_substr($value, 0, 80) . '…' }}
-                                        @else
-                                            {{ $value }}
-                                        @endif
-                                    </td>
-                                @endforeach
-                                @php
-                                    $primaryKeyColumn = 'id';
-                                    foreach ($columns as $col) {
-                                        if ($col['primary']) {
-                                            $primaryKeyColumn = $col['name'];
-                                            break;
-                                        }
-                                    }
-                                    $primaryKeyValue = $row->{$primaryKeyColumn};
-                                @endphp
-                                <td style="text-align:right; white-space:nowrap;">
-                                    <a href="{{ route('director.db.edit', [$table, $primaryKeyValue]) }}" class="btn btn-secondary">Редактировать</a>
-                                    <form method="POST" action="{{ route('director.db.destroy', [$table, $primaryKeyValue]) }}" style="display:inline-block;" onsubmit="return confirm('Удалить эту запись?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">Удалить</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ count($columns) + 1 }}" style="text-align:center; padding:20px; color:#777;">
-                                    Записей не найдено.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div style="margin-top: 20px; text-align: center;">
-                {{ $rows->links() }}
-            </div>
+                    @empty
+                        <tr>
+                            <td colspan="{{ count($columns) + 1 }}"
+                                style="text-align:center; padding:40px; color:#888;">
+                                Записей не найдено
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
-</body>
-</html>
 
+        <div class="choco-pagination-wrap">{{ $rows->links() }}</div>
+    </div>
+@endsection

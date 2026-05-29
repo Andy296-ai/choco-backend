@@ -1,173 +1,127 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Управление Салонами — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        {!! file_get_contents(resource_path('css/modals.css')) !!}
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
+@extends('layouts.director')
 
-        * {
-            box-sizing: border-box;
-        }
+@section('title', 'Настройки — Шоколад')
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
+@section('styles')
+<style>
+    .salon-card {
+        background: var(--white);
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        padding: 24px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
+    .salon-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
 
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
+    .salon-card h2 {
+        margin: 0 0 12px;
+        font-family: 'Playfair Display', serif;
+        color: var(--chocolate);
+        font-size: 20px;
+    }
 
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
+    .salon-card p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555;
+    }
 
-        .nav-item {
-            margin-bottom: 15px;
-        }
+    .salon-actions { display: flex; gap: 10px; flex-shrink: 0; }
 
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
+    .btn-edit {
+        background: none;
+        border: 1px solid var(--gold);
+        color: #888;
+        padding: 8px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-edit:hover { background: var(--gold); color: var(--chocolate); }
 
-        .nav-item a:hover, .nav-item a.active {
-            background-color: rgba(255,255,255,0.1);
-            color: var(--gold);
-        }
+    .btn-delete {
+        background: none;
+        border: 1px solid #f44336;
+        color: #f44336;
+        padding: 8px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-delete:hover { background: #f44336; color: white; }
 
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
+    @media (max-width: 600px) {
+        .salon-card { flex-direction: column; }
+        .salon-actions { width: 100%; }
+        .btn-edit, .btn-delete { flex: 1; text-align: center; }
+    }
+</style>
+@endsection
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .content-card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .logout-btn {
-            background: none;
-            border: 1px solid var(--chocolate);
-            color: var(--chocolate);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .btn-save {
-            background: var(--chocolate);
-            color: var(--white);
-            border: none;
-            padding: 10px 30px;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('director.dashboard') }}">Дашборд</a></li>
-            <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
-            <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
-            <li class="nav-item"><a href="{{ route('director.settings') }}" class="active">Настройки</a></li>
-            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
-            <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
-        </ul>
+@section('content')
+    <div class="header">
+        <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate);">Управление салонами</h1>
+        <button class="btn-add" onclick="openModal('modal-salon-add')">+ Добавить салон</button>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <h1>Управление Салонами</h1>
-            <button class="btn-save" style="background-color: var(--gold); color: var(--chocolate);" data-modal="modal-salon-add">Добавить салон</button>
+    @foreach($salons as $salon)
+    <div class="salon-card">
+        <div>
+            <h2>{{ $salon->name }}</h2>
+            <p><strong>Адрес:</strong> {{ $salon->address }}</p>
+            <p><strong>Телефон:</strong> {{ $salon->phone }}</p>
+            <p><strong>Координаты:</strong>
+                @if($salon->latitude && $salon->longitude)
+                    {{ $salon->latitude }}, {{ $salon->longitude }}
+                @else
+                    <span style="color:#f44336;">Не указаны (карта не будет работать)</span>
+                @endif
+            </p>
+            @if($salon->description)
+                <p><strong>Описание:</strong> {{ $salon->description }}</p>
+            @endif
         </div>
-
-        <div class="dashboard-grid" style="grid-template-columns: 1fr;">
-            @foreach($salons as $salon)
-            <div class="content-card" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: start;">
-                <div>
-                    <h2 style="margin-top: 0; color: var(--chocolate);">{{ $salon->name }}</h2>
-                    <p><strong>Адрес:</strong> {{ $salon->address }}</p>
-                    <p><strong>Телефон:</strong> {{ $salon->phone }}</p>
-                    <p><strong>Координаты:</strong> 
-                        @if($salon->latitude && $salon->longitude)
-                            {{ $salon->latitude }}, {{ $salon->longitude }}
-                        @else
-                            <span style="color: #f44336;">Не указаны (карта не будет работать)</span>
-                        @endif
-                    </p>
-                    <p><strong>Описание:</strong> {{ $salon->description }}</p>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="logout-btn" 
-                            style="border-color: var(--gold); color: #888;" 
-                            data-modal="modal-salon-edit" 
-                            data-edit="{{ json_encode($salon) }}"
-                            data-action="{{ route('director.salons.update', $salon->id) }}">
-                        Редактировать
-                    </button>
-                    <form action="{{ route('director.salons.delete', $salon->id) }}" method="POST" class="ajax-form">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="logout-btn" style="border-color: #f44336; color: #f44336;" onclick="return confirm('Вы уверены?')">Удалить</button>
-                    </form>
-                </div>
-            </div>
-            @endforeach
-        </div>
-        <div style="margin-top: 20px;">
-            {{ $salons->links() }}
+        <div class="salon-actions">
+            <button class="btn-edit"
+                    data-modal="modal-salon-edit"
+                    data-edit="{{ json_encode($salon) }}"
+                    data-action="{{ route('director.salons.update', $salon->id) }}">
+                Редактировать
+            </button>
+            <form action="{{ route('director.salons.delete', $salon->id) }}" method="POST" class="ajax-form" style="display:contents;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-delete" onclick="return confirm('Удалить салон?')">Удалить</button>
+            </form>
         </div>
     </div>
+    @endforeach
 
-    <!-- Modals -->
+    @if($salons->isEmpty())
+    <div style="text-align:center; padding:60px 20px; color:#888;">
+        <div style="font-size:48px; margin-bottom:16px; opacity:0.3;">🏪</div>
+        <h3 style="color:var(--chocolate); font-family:'Playfair Display',serif; margin-bottom:8px;">Салоны не добавлены</h3>
+        <p>Нажмите «Добавить салон», чтобы создать первый</p>
+    </div>
+    @endif
+
+    <div class="choco-pagination-wrap">{{ $salons->links() }}</div>
+@endsection
+
+@section('modals')
     <div class="modal-overlay" id="modal-salon-add">
         <div class="modal-container">
             <div class="modal-header">
@@ -188,7 +142,7 @@
                     <label>Телефон</label>
                     <input type="text" name="phone">
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                     <div class="form-group">
                         <label>Широта (Lat)</label>
                         <input type="number" step="any" name="latitude" placeholder="56.3075">
@@ -231,7 +185,7 @@
                     <label>Телефон</label>
                     <input type="text" name="phone">
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                     <div class="form-group">
                         <label>Широта (Lat)</label>
                         <input type="number" step="any" name="latitude">
@@ -252,56 +206,27 @@
             </form>
         </div>
     </div>
+@endsection
 
-    <script>
-        // Inline panel-crud.js logic for stability
-        document.addEventListener('DOMContentLoaded', function() {
-            const modalButtons = document.querySelectorAll('[data-modal]');
-            modalButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const modal = document.getElementById(btn.getAttribute('data-modal'));
-                    if (modal) {
-                        modal.classList.add('active');
-                        if (btn.hasAttribute('data-edit')) {
-                            const data = JSON.parse(btn.getAttribute('data-edit'));
-                            const form = modal.querySelector('form');
-                            form.action = btn.getAttribute('data-action');
-                            Object.keys(data).forEach(key => {
-                                const input = form.querySelector(`[name="${key}"]`);
-                                if (input) {
-                                    // Handle null/undefined values
-                                    input.value = data[key] !== null && data[key] !== undefined ? data[key] : '';
-                                }
-                            });
-                        }
-                    }
-                });
-            });
-
-            document.querySelectorAll('.close-modal, .btn-cancel').forEach(btn => {
-                btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active'));
-            });
-
-            document.querySelectorAll('.ajax-form').forEach(form => {
-                form.addEventListener('submit', async (e) => {
-                    if (form.method.toUpperCase() === 'POST' || form.querySelector('input[name="_method"]')) {
-                        e.preventDefault();
-                        const btn = form.querySelector('button[type="submit"]');
-                        btn.disabled = true;
-                        try {
-                            const response = await fetch(form.action, {
-                                method: 'POST',
-                                body: new FormData(form),
-                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-                            });
-                            if (response.ok) location.reload();
-                            else alert('Ошибка при сохранении');
-                        } catch (e) { alert('Ошибка сети'); }
-                        btn.disabled = false;
-                    }
-                });
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-modal]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modal = document.getElementById(btn.getAttribute('data-modal'));
+                if (!modal) return;
+                modal.classList.add('active');
+                if (btn.hasAttribute('data-edit')) {
+                    const data = JSON.parse(btn.getAttribute('data-edit'));
+                    const form = modal.querySelector('form');
+                    form.action = btn.getAttribute('data-action');
+                    Object.keys(data).forEach(key => {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) input.value = data[key] ?? '';
+                    });
+                }
             });
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+@endsection

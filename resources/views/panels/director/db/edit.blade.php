@@ -1,259 +1,164 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Редактирование записи в {{ $table }} — Управление БД</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
+@extends('layouts.director')
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
+@section('title', 'Редактирование #' . $id . ' — ' . $table)
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
+@section('styles')
+<style>
+    .db-edit-card {
+        max-width: 720px;
+    }
 
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
+    .db-edit-card h1 {
+        font-family: 'Playfair Display', serif;
+        color: var(--chocolate);
+        font-size: 22px;
+        margin: 0 0 24px;
+    }
 
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
+    .form-group { margin-bottom: 16px; }
 
-        .nav-item {
-            margin-bottom: 15px;
-        }
+    .form-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 5px;
+    }
 
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
+    .form-group label .type-hint {
+        color: #bbb;
+        font-weight: 400;
+        text-transform: none;
+        font-size: 11px;
+    }
 
-        .nav-item a:hover,
-        .nav-item a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--gold);
-        }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
 
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--gold); }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+    .form-group textarea { resize: vertical; min-height: 80px; }
 
-        .header h1 {
-            margin: 0;
-            color: var(--chocolate);
-            font-family: 'Playfair Display', serif;
-        }
+    .input-readonly {
+        background: #f5f5f5;
+        color: #888;
+        cursor: not-allowed;
+    }
 
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            text-decoration: none;
-        }
+    .error-msg { font-size: 12px; color: #f44336; margin-top: 4px; }
 
-        .btn-primary {
-            background: var(--gold);
-            color: var(--chocolate);
-        }
+    .required-star { color: #f44336; }
 
-        .btn-secondary {
-            background: #eee;
-            color: #555;
-        }
+    .btn {
+        display: inline-block;
+        padding: 10px 22px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-gold  { background: var(--gold); color: var(--chocolate); }
+    .btn-grey  { background: #eee; color: #555; }
+</style>
+@endsection
 
-        .card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            max-width: 800px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        input,
-        textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            font-size: 13px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .required {
-            color: #f44336;
-        }
-
-        .error {
-            font-size: 12px;
-            color: #f44336;
-            margin-top: 3px;
-        }
-
-        .readonly {
-            background: #f5f5f5;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('director.dashboard') }}">Дашборд</a></li>
-            <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
-            <li class="nav-item"><a href="{{ route('director.finance') }}">Финансы</a></li>
-            <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
-            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
-            <li class="nav-item"><a href="{{ route('director.db.index') }}" class="active">База данных</a></li>
-        </ul>
+@section('content')
+    <div class="header" style="margin-bottom:24px;">
+        <div>
+            <h1 style="margin:0; font-family:'Playfair Display',serif; color:var(--chocolate); font-size:22px;">
+                Редактировать запись
+                <span style="color:var(--gold);">#{{ $id }}</span>
+                в&nbsp;<span style="color:var(--gold);">{{ $table }}</span>
+            </h1>
+        </div>
+        <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">← К таблице</a>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <div>
-                <h1>Редактирование записи #{{ $id }} в {{ $table }}</h1>
+    <div class="content-card db-edit-card">
+        @if($errors->any())
+            <div style="background:#ffebee; color:#c62828; padding:12px 16px; border-radius:6px; margin-bottom:16px; font-size:13px;">
+                <ul style="margin:0; padding-left:18px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-            <div>
-                <a href="{{ route('director.db.table', $table) }}" class="btn btn-secondary">← К таблице</a>
-            </div>
-        </div>
+        @endif
 
-        <div class="card">
-            <form method="POST" action="{{ route('director.db.update', [$table, $id]) }}">
-                @csrf
-                @method('PUT')
+        <form method="POST" action="{{ route('director.db.update', [$table, $id]) }}">
+            @csrf
+            @method('PUT')
 
-                @foreach($formColumns as $column)
-                    @php
-                        $inputType = 'text';
-                        $value = old($column['name'], $row->{$column['name']});
+            @foreach($formColumns as $column)
+                @php
+                    $inputType = 'text';
+                    $val = old($column['name'], $row->{$column['name']});
 
-                        if (strpos($column['type'], 'int') !== false) {
-                            $inputType = 'number';
-                        } elseif (strpos($column['type'], 'decimal') !== false ||
-                            strpos($column['type'], 'float') !== false ||
-                            strpos($column['type'], 'double') !== false
-                        ) {
-                            $inputType = 'number';
-                        } elseif (strpos($column['type'], 'date') !== false && strpos($column['type'], 'time') === false) {
-                            $inputType = 'date';
-                            if ($value && $value !== '0000-00-00') {
-                                $value = date('Y-m-d', strtotime($value));
-                            }
-                        } elseif (strpos($column['type'], 'datetime') !== false || strpos($column['type'], 'timestamp') !== false) {
-                            $inputType = 'datetime-local';
-                            if ($value && $value !== '0000-00-00 00:00:00') {
-                                $value = date('Y-m-d\TH:i', strtotime($value));
-                            }
-                        } elseif (strpos($column['type'], 'time') !== false) {
-                            $inputType = 'time';
-                        } elseif (strpos($column['type'], 'text') !== false || ($column['max_length'] && $column['max_length'] > 255)) {
-                            $inputType = 'textarea';
-                        } elseif ($column['name'] === 'email' || strpos($column['name'], 'email') !== false) {
-                            $inputType = 'email';
-                        } elseif ($column['name'] === 'password' || strpos($column['name'], 'password') !== false) {
-                            $inputType = 'password';
-                        }
-                    @endphp
-                    <div class="form-group">
-                        <label>
-                            {{ $column['name'] }}
-                            @if($column['name'] === $primaryKey)
-                                <span style="font-size:11px; color:#999;">(primary key)</span>
-                            @elseif(!$column['nullable'] && $column['default'] === null)
-                                <span class="required">*</span>
-                            @endif
-                            <span style="font-size:11px; color:#999;">({{ $column['type'] }})</span>
-                        </label>
+                    if (str_contains($column['type'], 'int'))      $inputType = 'number';
+                    elseif (str_contains($column['type'], 'decimal') || str_contains($column['type'], 'float')) $inputType = 'number';
+                    elseif (str_contains($column['type'], 'datetime') || str_contains($column['type'], 'timestamp')) {
+                        $inputType = 'datetime-local';
+                        if ($val && $val !== '0000-00-00 00:00:00') $val = date('Y-m-d\TH:i', strtotime($val));
+                    }
+                    elseif (str_contains($column['type'], 'date')) {
+                        $inputType = 'date';
+                        if ($val && $val !== '0000-00-00') $val = date('Y-m-d', strtotime($val));
+                    }
+                    elseif (str_contains($column['type'], 'time'))  $inputType = 'time';
+                    elseif (str_contains($column['type'], 'text') || ($column['max_length'] && $column['max_length'] > 255)) $inputType = 'textarea';
+                    elseif (str_contains($column['name'], 'email')) $inputType = 'email';
+                    elseif (str_contains($column['name'], 'password')) $inputType = 'password';
+                @endphp
+
+                <div class="form-group">
+                    <label>
+                        {{ $column['name'] }}
                         @if($column['name'] === $primaryKey)
-                            <input
-                                type="text"
-                                value="{{ $value }}"
-                                class="readonly"
-                                readonly
-                                disabled
-                            >
-                            <input type="hidden" name="{{ $column['name'] }}" value="{{ $value }}">
-                        @elseif($inputType === 'textarea')
-                            <textarea
-                                name="{{ $column['name'] }}"
-                            >{{ $value }}</textarea>
-                        @else
-                            <input
-                                type="{{ $inputType }}"
-                                name="{{ $column['name'] }}"
-                                value="{{ $value }}"
-                            >
+                            <span class="type-hint">(primary key)</span>
+                        @elseif(!$column['nullable'] && $column['default'] === null)
+                            <span class="required-star">*</span>
                         @endif
-                        @error($column['name'])
-                            <div class="error">{{ $message }}</div>
-                        @enderror
-                    </div>
-                @endforeach
+                        <span class="type-hint">{{ $column['type'] }}</span>
+                    </label>
 
-                <div style="margin-top:20px; display:flex; gap:10px;">
-                    <a href="{{ route('director.db.table', $table) }}" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    @if($column['name'] === $primaryKey)
+                        <input type="text" value="{{ $val }}" class="input-readonly" readonly disabled>
+                        <input type="hidden" name="{{ $column['name'] }}" value="{{ $val }}">
+                    @elseif($inputType === 'textarea')
+                        <textarea name="{{ $column['name'] }}">{{ $val }}</textarea>
+                    @else
+                        <input type="{{ $inputType }}" name="{{ $column['name'] }}" value="{{ $val }}">
+                    @endif
+
+                    @error($column['name'])
+                        <div class="error-msg">{{ $message }}</div>
+                    @enderror
                 </div>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
+            @endforeach
 
+            <div style="display:flex; gap:10px; margin-top:24px;">
+                <a href="{{ route('director.db.table', $table) }}" class="btn btn-grey">Отмена</a>
+                <button type="submit" class="btn btn-gold">Сохранить изменения</button>
+            </div>
+        </form>
+    </div>
+@endsection

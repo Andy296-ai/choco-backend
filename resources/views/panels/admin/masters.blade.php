@@ -47,30 +47,23 @@
         <h1>Мастера</h1>
     </div>
 
-    <!-- Форма поиска и фильтров -->
+    <!-- Поиск -->
     <div class="content-card" style="margin-bottom: 20px; padding: 20px;">
-        <form method="GET" action="{{ route('admin.masters') }}" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <form method="GET" action="{{ route('admin.masters') }}" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px;">
-                <input type="text" name="search" placeholder="Поиск по имени, телефону или email..." 
-                       value="{{ request('search') }}" 
-                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:var(--chocolate); margin-bottom:6px;">Поиск мастера</label>
+                <input type="text" name="search" placeholder="Имя, телефон или email..."
+                       value="{{ request('search') }}"
+                       style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:6px; font-family:'Montserrat',sans-serif; font-size:13px; outline:none;">
             </div>
-            
-            <div style="min-width: 150px;">
-                <select name="status" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                    <option value="">Все статусы</option>
-                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Активные</option>
-                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Неактивные</option>
-                </select>
-            </div>
-            
-            <button type="submit" style="background: var(--chocolate); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; cursor: pointer;">
+            <button type="submit" style="background:var(--gold); color:var(--chocolate); border:none; padding:10px 20px; border-radius:6px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px; cursor:pointer;">
                 Найти
             </button>
-            
-            <a href="{{ route('admin.masters') }}" style="background: #f5f5f5; color: #666; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: 600; display: inline-block;">
+            @if(request('search'))
+            <a href="{{ route('admin.masters') }}" style="background:#f5f5f5; color:#666; text-decoration:none; padding:10px 16px; border-radius:6px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px; display:inline-block;">
                 Сбросить
             </a>
+            @endif
         </form>
     </div>
 

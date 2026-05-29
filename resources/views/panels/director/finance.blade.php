@@ -1,270 +1,294 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Финансы — Шоколад</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --chocolate: #3E2723;
-            --gold: #D4AF37;
-            --cream: #FFF8E1;
-            --white: #FFFFFF;
-            --sidebar-width: 250px;
-        }
+@extends('layouts.director')
 
-        * {
-            box-sizing: border-box;
-        }
+@section('title', 'Финансы — Шоколад')
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            display: flex;
-        }
+@section('styles')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .finance-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--chocolate);
-            color: var(--white);
-            position: fixed;
-            padding: 30px 20px;
-        }
+    .finance-header-row h1 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+        color: var(--chocolate);
+        font-size: 28px;
+    }
 
-        .sidebar h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            margin-bottom: 40px;
-            text-align: center;
-        }
+    .finance-header-row p {
+        color: #888;
+        margin: 5px 0 0;
+        font-size: 14px;
+    }
 
-        .nav-menu {
-            list-style: none;
-            padding: 0;
-        }
+    .filter-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-        .nav-item {
-            margin-bottom: 15px;
-        }
+    .filter-form label { color: #888; font-size: 13px; }
 
-        .nav-item a {
-            color: #ccc;
-            text-decoration: none;
-            font-size: 14px;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
+    .filter-form input[type="date"],
+    .filter-form button,
+    .filter-form a {
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+    }
 
-        .nav-item a:hover, .nav-item a.active {
-            background-color: rgba(255,255,255,0.1);
-            color: var(--gold);
-        }
+    .filter-form input[type="date"] {
+        border: 1px solid #ddd;
+        color: var(--chocolate);
+        outline: none;
+    }
 
-        .main-content {
-            margin-left: 298px;
-            flex: 1;
-            padding: 40px;
-        }
+    .filter-form .btn-apply {
+        background: var(--chocolate);
+        color: var(--white);
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .filter-form .btn-apply:hover { opacity: 0.85; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+    .filter-form .btn-pdf {
+        background: #D32F2F;
+        color: var(--white);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
 
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-        }
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
 
-        .full-width {
-            grid-column: 1 / -1;
-        }
+    .full-width { grid-column: 1 / -1; }
 
-        .content-card {
-            background: var(--white);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(62, 39, 35, 0.05);
-            margin-bottom: 30px;
-            transition: transform 0.3s ease;
-        }
+    .content-card {
+        background: var(--white);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(62,39,35,0.06);
+    }
 
-        .content-card:hover {
-            transform: translateY(-5px);
-        }
+    .finance-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+    }
 
-        .finance-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+    .summary-item h4 {
+        font-size: 12px;
+        color: #888;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
 
-        .summary-item h4 {
-            font-size: 14px;
-            color: #888;
-            margin: 0 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .summary-item .amount {
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--chocolate);
+    }
 
-        .summary-item .amount {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--chocolate);
-        }
+    .chart-container { height: 280px; position: relative; }
 
-        .chart-container {
-            height: 300px;
-            position: relative;
-        }
+    .card-title {
+        font-family: 'Playfair Display', serif;
+        color: var(--chocolate);
+        margin: 0 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        h3 {
-            font-family: 'Playfair Display', serif;
-            color: var(--chocolate);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .card-title::before {
+        content: '';
+        display: inline-block;
+        width: 28px;
+        height: 2px;
+        background: var(--gold);
+        flex-shrink: 0;
+    }
 
-        h3::before {
-            content: '';
-            display: inline-block;
-            width: 30px;
-            height: 2px;
-            background: var(--gold);
-        }
+    .sort-btn {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: var(--gold);
+        cursor: pointer;
+        font-size: 12px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        padding: 0;
+    }
 
-        .service-list {
-            list-style: none;
-            padding: 0;
-        }
+    .service-list { list-style: none; padding: 0; margin: 0; }
 
-        .service-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
+    .service-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #eee;
+    }
 
-        .service-info .name {
-            font-weight: 600;
-            color: var(--chocolate);
-            display: block;
-        }
+    .service-item:last-child { border-bottom: none; }
 
-        .service-info .count {
-            font-size: 12px;
-            color: #888;
-        }
+    .service-info .name { font-weight: 600; color: var(--chocolate); display: block; }
+    .service-info .count { font-size: 12px; color: #888; }
+    .service-revenue { font-weight: 600; color: var(--gold); }
 
-        .service-revenue {
-            font-weight: 600;
-            color: var(--gold);
-        }
+    /* ── Блок эффективности мастеров ── */
+    .masters-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
 
-        @media (max-width: 1200px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h2>ШОКОЛАД</h2>
-        <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('director.dashboard') }}">Дашборд</a></li>
-            <li class="nav-item"><a href="{{ route('director.employees') }}">Сотрудники</a></li>
-            <li class="nav-item"><a href="{{ route('director.finance') }}" class="active">Финансы</a></li>
-            <li class="nav-item"><a href="{{ route('director.settings') }}">Настройки</a></li>
-            <li class="nav-item"><a href="{{ route('director.clients') }}">Клиенты</a></li>
-            <li class="nav-item"><a href="{{ route('director.services') }}">Услуги</a></li>
-            <li class="nav-item"><a href="{{ route('director.db.index') }}">База данных</a></li>
-        </ul>
+    .masters-table-wrap { overflow-x: auto; }
+
+    .masters-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .masters-table thead th {
+        background: #f9f9f9;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 12px;
+        color: #888;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .masters-table tbody tr { border-bottom: 1px solid #eee; }
+
+    .masters-table td { padding: 10px 12px; }
+
+    .level-badge {
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #888;
+        font-size: 13px;
+    }
+
+    @media (max-width: 1100px) {
+        .content-grid { grid-template-columns: 1fr; }
+        .masters-layout { grid-template-columns: 1fr; }
+        .masters-layout .chart-container { height: 220px; }
+    }
+
+    @media (max-width: 768px) {
+        .finance-header-row { flex-direction: column; }
+        .filter-form { width: 100%; }
+        .finance-summary { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 480px) {
+        .finance-summary { grid-template-columns: 1fr 1fr; }
+        .summary-item .amount { font-size: 20px; }
+    }
+</style>
+@endsection
+
+@section('content')
+    <div class="finance-header-row">
+        <div>
+            <h1>Финансовая аналитика</h1>
+            <p>Обзор доходов и эффективности сети</p>
+        </div>
+        <form method="GET" action="{{ route('director.finance') }}" class="filter-form">
+            <label>С</label>
+            <input type="date" name="start_date" value="{{ $startDate->format('Y-m-d') }}">
+            <label>По</label>
+            <input type="date" name="end_date" value="{{ $endDate->format('Y-m-d') }}">
+            <button type="submit" class="btn-apply">Применить</button>
+            <input type="hidden" name="service_sort"  id="service_sort"  value="{{ $serviceSort }}">
+            <input type="hidden" name="category_sort" id="category_sort" value="{{ $categorySort }}">
+            <input type="hidden" name="master_sort"   id="master_sort"   value="{{ $masterSort }}">
+            <a href="{{ route('director.finance.export-pdf', ['start_date' => request('start_date'), 'end_date' => request('end_date')]) }}"
+               class="btn-apply btn-pdf">PDF Отчёт</a>
+        </form>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <div>
-                <h1 style="margin: 0; color: var(--chocolate); font-family: 'Playfair Display', serif;">Финансовая аналитика</h1>
-                <p style="color: #888; margin-top: 5px;">Обзор доходов и эффективности сети</p>
+    <!-- Сводка -->
+    <div class="content-card full-width" style="margin-bottom:25px;">
+        <div class="finance-summary">
+            <div class="summary-item">
+                <h4>Выручка за период</h4>
+                <div class="amount">{{ number_format($monthRevenue, 0, '.', ' ') }} ₽</div>
+                <p style="font-size:12px;color:#888;margin:4px 0 0;">{{ $startDate->format('d.m.Y') }} — {{ $endDate->format('d.m.Y') }}</p>
             </div>
-            <form method="GET" action="{{ route('director.finance') }}" style="display: flex; align-items: center; gap: 10px;">
-                <label style="color: #888; font-size: 13px;">С</label>
-                <input type="date" name="start_date" value="{{ $startDate->format('Y-m-d') }}" 
-                       style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--chocolate);">
-                <label style="color: #888; font-size: 13px;">По</label>
-                <input type="date" name="end_date" value="{{ $endDate->format('Y-m-d') }}" 
-                       style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: 'Montserrat', sans-serif; color: var(--chocolate);">
-                <button type="submit" style="background: var(--chocolate); color: var(--white); border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: opacity 0.2s;">
-                    Применить
+            <div class="summary-item">
+                <h4>Общая выручка</h4>
+                <div class="amount">{{ number_format($totalRevenue, 0, '.', ' ') }} ₽</div>
+            </div>
+            <div class="summary-item">
+                <h4>Расходы (35%)</h4>
+                <div class="amount" style="color:#d32f2f;">{{ number_format($expenses, 0, '.', ' ') }} ₽</div>
+            </div>
+            <div class="summary-item">
+                <h4>Чистая прибыль</h4>
+                <div class="amount" style="color:#2e7d32;">{{ number_format($profit, 0, '.', ' ') }} ₽</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Динамика выручки -->
+        <div class="content-card">
+            <h3 class="card-title">Динамика выручки</h3>
+            <div class="chart-container">
+                <canvas id="revenueTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Доля салонов -->
+        <div class="content-card">
+            <h3 class="card-title">Доля салонов в выручке</h3>
+            <div class="chart-container">
+                <canvas id="salonDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Услуги по доходу -->
+        <div class="content-card">
+            <h3 class="card-title">
+                Услуги по доходу
+                <button type="button" class="sort-btn" onclick="toggleSort('service')">
+                    {{ $serviceSort === 'desc' ? 'Топ ↑' : 'Анти-топ ↓' }}
                 </button>
-                <input type="hidden" name="service_sort" id="service_sort" value="{{ $serviceSort }}">
-                <input type="hidden" name="category_sort" id="category_sort" value="{{ $categorySort }}">
-                <input type="hidden" name="master_sort" id="master_sort" value="{{ $masterSort }}">
-                <a href="{{ route('director.finance.export-pdf', ['start_date' => request('start_date'), 'end_date' => request('end_date')]) }}" 
-                   style="background: #D32F2F; color: var(--white); text-decoration: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; transition: opacity 0.2s; display: flex; align-items: center; gap: 5px;">
-                    <span>PDF Отчет</span>
-                </a>
-            </form>
-        </div>
-
-        <div class="content-card full-width">
-            <div class="finance-summary">
-                <div class="summary-item">
-                    <h4>Выручка за период</h4>
-                    <div class="amount">{{ number_format($monthRevenue, 0, '.', ' ') }} ₽</div>
-                    <p style="font-size: 12px; color: #888; margin: 5px 0 0;">{{ $startDate->format('d.m.Y') }} — {{ $endDate->format('d.m.Y') }}</p>
-                </div>
-                <div class="summary-item">
-                    <h4>Общая выручка</h4>
-                    <div class="amount">{{ number_format($totalRevenue, 0, '.', ' ') }} ₽</div>
-                </div>
-                <div class="summary-item">
-                    <h4>Общие расходы (35%)</h4>
-                    <div class="amount" style="color: #d32f2f;">{{ number_format($expenses, 0, '.', ' ') }} ₽</div>
-                </div>
-                <div class="summary-item">
-                    <h4>Чистая прибыль</h4>
-                    <div class="amount" style="color: #2e7d32;">{{ number_format($profit, 0, '.', ' ') }} ₽</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-grid">
-            <div class="content-card">
-                <h3>Динамика выручки</h3>
-                <div class="chart-container">
-                    <canvas id="revenueTrendChart"></canvas>
-                </div>
-            </div>
-
-            <div class="content-card">
-                <h3>Доля салонов в выручке</h3>
-                <div class="chart-container">
-                    <canvas id="salonDistributionChart"></canvas>
-                </div>
-            </div>
-
-            <div class="content-card">
-                <h3 style="justify-content: space-between;">
-                    Услуги по доходу
-                    <button type="button" onclick="toggleSort('service')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px; display:flex; align-items:center; gap:5px;">
-                        {{ $serviceSort === 'desc' ? 'Топ ↑' : 'Анти-топ ↓' }}
-                    </button>
-                </h3>
+            </h3>
+            @if($topServices->isEmpty())
+                <div class="empty-state">Нет данных за период</div>
+            @else
                 <ul class="service-list">
                     @foreach($topServices as $service)
                     <li class="service-item">
@@ -276,54 +300,58 @@
                     </li>
                     @endforeach
                 </ul>
-                @if($topServices->isEmpty())
-                <p style="text-align:center; color:#888; font-size:13px; margin:20px 0;">Нет данных за период</p>
-                @endif
-            </div>
+            @endif
+        </div>
 
-            <div class="content-card">
-                <h3 style="justify-content: space-between;">
-                    Популярные категории
-                    <button type="button" onclick="toggleSort('category')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px;">
-                        {{ $categorySort === 'desc' ? 'Популярные ↑' : 'Редкие ↓' }}
-                    </button>
-                </h3>
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
-                </div>
+        <!-- Популярные категории -->
+        <div class="content-card">
+            <h3 class="card-title">
+                Популярные категории
+                <button type="button" class="sort-btn" onclick="toggleSort('category')">
+                    {{ $categorySort === 'desc' ? 'Популярные ↑' : 'Редкие ↓' }}
+                </button>
+            </h3>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
             </div>
+        </div>
 
-            <div class="content-card full-width">
-                <h3 style="justify-content: space-between;">
-                    Эффективность мастеров
-                    <button type="button" onclick="toggleSort('master')" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:12px;">
-                        {{ $masterSort === 'desc' ? 'Лучшие ↑' : 'Отстающие ↓' }}
-                    </button>
-                </h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="chart-container" style="height: 250px;">
+        <!-- Эффективность мастеров (full-width, исправленный блок) -->
+        <div class="content-card full-width">
+            <h3 class="card-title">
+                Эффективность мастеров
+                <button type="button" class="sort-btn" onclick="toggleSort('master')">
+                    {{ $masterSort === 'desc' ? 'Лучшие ↑' : 'Отстающие ↓' }}
+                </button>
+            </h3>
+
+            @if(empty($masterPerformance) || count($masterPerformance) === 0)
+                <div class="empty-state">Нет данных за выбранный период</div>
+            @else
+                <div class="masters-layout">
+                    <div class="chart-container" style="height:260px;">
                         <canvas id="masterPerformanceChart"></canvas>
                     </div>
-                    <div style="overflow-y: auto; max-height: 250px;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                            <thead style="background: #f9f9f9; position: sticky; top: 0;">
+                    <div class="masters-table-wrap">
+                        <table class="masters-table">
+                            <thead>
                                 <tr>
-                                    <th style="padding: 10px; text-align: left;">Мастер</th>
-                                    <th style="padding: 10px; text-align: center;">Записи</th>
-                                    <th style="padding: 10px; text-align: right;">Выручка</th>
-                                    <th style="padding: 10px; text-align: center;">Уровень</th>
+                                    <th>Мастер</th>
+                                    <th>Записи</th>
+                                    <th>Выручка</th>
+                                    <th>Уровень</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($masterPerformance as $master)
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 10px;">{{ $master['name'] }}</td>
-                                    <td style="padding: 10px; text-align: center;">{{ $master['count'] }}</td>
-                                    <td style="padding: 10px; text-align: right; font-weight: 600;">{{ number_format($master['revenue'], 0, '.', ' ') }} ₽</td>
-                                    <td style="padding: 10px; text-align: center;">
-                                        <span style="padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; 
-                                            background: {{ $master['level'] === 'Senior' ? '#C8E6C9' : ($master['level'] === 'Middle' ? '#FFF9C4' : '#F5F5F5') }};
-                                            color: {{ $master['level'] === 'Senior' ? '#2E7D32' : ($master['level'] === 'Middle' ? '#FBC02D' : '#757575') }};">
+                                <tr>
+                                    <td>{{ $master['name'] }}</td>
+                                    <td style="text-align:center;">{{ $master['count'] }}</td>
+                                    <td style="text-align:right; font-weight:600;">{{ number_format($master['revenue'], 0, '.', ' ') }} ₽</td>
+                                    <td style="text-align:center;">
+                                        <span class="level-badge" style="
+                                            background:{{ $master['level'] === 'Senior' ? '#C8E6C9' : ($master['level'] === 'Middle' ? '#FFF9C4' : '#F5F5F5') }};
+                                            color:{{ $master['level'] === 'Senior' ? '#2E7D32' : ($master['level'] === 'Middle' ? '#FBC02D' : '#757575') }};">
                                             {{ $master['level'] }}
                                         </span>
                                     </td>
@@ -333,136 +361,81 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
+@endsection
 
-    <script>
-        // Data for Monthly Revenue Trend
-        const monthlyData = @json($monthlyRevenue);
-        const revenueTrendCtx = document.getElementById('revenueTrendChart').getContext('2d');
-        new Chart(revenueTrendCtx, {
-            type: 'line',
-            data: {
-                labels: monthlyData.map(d => d.month),
-                datasets: [{
-                    label: 'Выручка (₽)',
-                    data: monthlyData.map(d => d.revenue),
-                    borderColor: '#3E2723',
-                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointBackgroundColor: '#D4AF37'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        // Data for Salon Distribution
-        const salonData = @json($salonRevenue);
-        const salonDistCtx = document.getElementById('salonDistributionChart').getContext('2d');
-        new Chart(salonDistCtx, {
-            type: 'doughnut',
-            data: {
-                labels: salonData.map(s => s.name),
-                datasets: [{
-                    data: salonData.map(s => s.revenue),
-                    backgroundColor: ['#3E2723', '#D4AF37', '#795548', '#8D6E63'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                cutout: '70%'
-            }
-        });
-
-        // Data for Popular Categories (now real dynamic data)
-        const categoryData = @json($categoryData);
-        const categoryLabels = Object.keys(categoryData);
-        const categoryCounts = Object.values(categoryData).map(c => c.count);
-        
-        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-        new Chart(categoryCtx, {
-            type: 'bar',
-            data: {
-                labels: categoryLabels,
-                datasets: [{
-                    label: 'Записей',
-                    data: categoryCounts,
-                    backgroundColor: '#D4AF37',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: { beginAtZero: true, grid: { color: '#f0f0f0' } }
-                }
-            }
-        });
-
-        // Data for Specialist Performance
-        const masterData = @json($masterPerformance);
-        const masterCtx = document.getElementById('masterPerformanceChart').getContext('2d');
-        new Chart(masterCtx, {
-            type: 'bar',
-            data: {
-                labels: masterData.map(m => m.name),
-                datasets: [
-                    {
-                        label: 'Выручка (x10 ₽)',
-                        data: masterData.map(m => m.revenue / 10),
-                        backgroundColor: '#3E2723',
-                        borderRadius: 5
-                    },
-                    {
-                        label: 'Записи',
-                        data: masterData.map(m => m.count),
-                        backgroundColor: '#D4AF37',
-                        borderRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        function toggleSort(type) {
-            const input = document.getElementById(type + '_sort');
-            input.value = input.value === 'desc' ? 'asc' : 'desc';
-            input.closest('form').submit();
+@section('scripts')
+<script>
+    const monthlyData = @json($monthlyRevenue);
+    new Chart(document.getElementById('revenueTrendChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(d => d.month),
+            datasets: [{
+                label: 'Выручка (₽)',
+                data: monthlyData.map(d => d.revenue),
+                borderColor: '#3E2723',
+                backgroundColor: 'rgba(212,175,55,0.1)',
+                fill: true, tension: 0.4, borderWidth: 3,
+                pointBackgroundColor: '#D4AF37'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
         }
-    </script>
-</body>
-</html>
+    });
+
+    const salonData = @json($salonRevenue);
+    new Chart(document.getElementById('salonDistributionChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: salonData.map(s => s.name),
+            datasets: [{ data: salonData.map(s => s.revenue),
+                backgroundColor: ['#3E2723','#D4AF37','#795548','#8D6E63'],
+                borderWidth: 2, borderColor: '#ffffff' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
+    });
+
+    const categoryData = @json($categoryData);
+    new Chart(document.getElementById('categoryChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(categoryData),
+            datasets: [{ label: 'Записей', data: Object.values(categoryData).map(c => c.count),
+                backgroundColor: '#D4AF37', borderRadius: 5 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+    });
+
+    @if(!empty($masterPerformance) && count($masterPerformance) > 0)
+    const masterData = @json($masterPerformance);
+    new Chart(document.getElementById('masterPerformanceChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: masterData.map(m => m.name),
+            datasets: [
+                { label: 'Выручка (x10 ₽)', data: masterData.map(m => m.revenue / 10), backgroundColor: '#3E2723', borderRadius: 5 },
+                { label: 'Записи', data: masterData.map(m => m.count), backgroundColor: '#D4AF37', borderRadius: 5 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+            scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+        }
+    });
+    @endif
+
+    function toggleSort(type) {
+        const input = document.getElementById(type + '_sort');
+        input.value = input.value === 'desc' ? 'asc' : 'desc';
+        input.closest('form').submit();
+    }
+</script>
+@endsection

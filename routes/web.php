@@ -113,6 +113,7 @@ Route::middleware(['auth', 'role:specialist'])->prefix('specialist')->name('spec
     
     // Portfolio CRUD
     Route::post('/portfolio', [App\Http\Controllers\Panels\SpecialistController::class, 'storePortfolio'])->name('portfolio.store');
+    Route::patch('/portfolio/{item}', [App\Http\Controllers\Panels\SpecialistController::class, 'updatePortfolio'])->name('portfolio.update');
     Route::delete('/portfolio/{item}', [App\Http\Controllers\Panels\SpecialistController::class, 'deletePortfolio'])->name('portfolio.delete');
 });
 

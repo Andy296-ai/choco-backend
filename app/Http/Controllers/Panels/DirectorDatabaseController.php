@@ -11,40 +11,22 @@ use Illuminate\Support\Facades\Validator;
 class DirectorDatabaseController extends Controller
 {
     /**
-     * Tables that the director is NOT allowed to view/edit via the DB panel.
-     * System tables and sensitive data tables are excluded.
+     * Белый список: только эти таблицы доступны директору.
+     * Пользователи, клиенты, сессии, кэш и системные таблицы скрыты.
      */
-    private const HIDDEN_TABLES = [
-        'migrations',
-        'password_reset_tokens',
-        'password_resets',
-        'failed_jobs',
-        'personal_access_tokens',
-        'users',
-        'clients',
-        'sessions',
-        'cache',
-        'cache_locks',
-        'jobs',
-        'job_batches',
-        'failed_jobs',
+    private const ALLOWED_TABLES = [
+        'absences',
+        'bookings',
+        'contacts',
+        'portfolio_items',
+        'salons',
+        'schedules',
+        'services',
     ];
 
-    /**
-     * Get all table names for sidebar/navigation.
-     * Uses Laravel Schema facade — compatible with any DB driver (SQLite, MySQL, Postgres).
-     *
-     * @return array
-     */
     private function getTableNames(): array
     {
-        $tableNames = Schema::getTableListing();
-
-        $tableNames = array_filter($tableNames, function ($table) {
-            return !in_array($table, self::HIDDEN_TABLES);
-        });
-
-        return array_values($tableNames);
+        return self::ALLOWED_TABLES;
     }
 
     public function index()
@@ -374,18 +356,7 @@ class DirectorDatabaseController extends Controller
 
     private function isValidTableName(string $table): bool
     {
-        // 1. Regex sanity check (prevent SQL injection via table name)
-        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
-            return false;
-        }
-
-        // 2. Whitelist check — block hidden/system tables even if they exist
-        if (in_array($table, self::HIDDEN_TABLES)) {
-            return false;
-        }
-
-        // 3. Table must actually exist in the database
-        return Schema::hasTable($table);
+        return in_array($table, self::ALLOWED_TABLES);
     }
 }
 

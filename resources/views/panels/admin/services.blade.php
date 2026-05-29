@@ -6,6 +6,62 @@
 
 @section('title', 'Услуги — Шоколад')
 
+@section('styles')
+<style>
+    .service-list { list-style: none; padding: 0; margin: 0; }
+
+    .service-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        border-bottom: 1px solid #f5f5f5;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .service-item:last-child { border-bottom: none; }
+
+    .service-info { flex: 1; min-width: 150px; }
+
+    .service-info h4 { margin: 0 0 4px; color: var(--chocolate); font-size: 14px; }
+
+    .service-info p { margin: 0; font-size: 12px; color: #888; }
+
+    .service-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+    .service-price { font-weight: 600; color: var(--chocolate); font-size: 14px; white-space: nowrap; }
+
+    .btn-edit-service {
+        color: var(--gold);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 13px;
+        padding: 0;
+        white-space: nowrap;
+    }
+    .btn-edit-service:hover { text-decoration: underline; }
+
+    .btn-delete-service {
+        color: #f44336;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        padding: 0 4px;
+    }
+
+    @media (max-width: 600px) {
+        .service-item { flex-direction: column; align-items: flex-start; }
+        .service-actions { width: 100%; justify-content: space-between; }
+    }
+</style>
+@endsection
+
 @section('content')
     <div class="header">
         <h1>Услуги</h1>
@@ -58,37 +114,37 @@
     <div class="content-card">
         <ul class="service-list">
             @forelse($services as $service)
-            <li class="service-item" style="list-style: none; padding: 15px; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center;">
+            <li class="service-item">
                 <div class="service-info">
-                    <h4 style="margin: 0; color: var(--chocolate);">{{ $service->name }}</h4>
-                    <p style="margin: 5px 0 0; font-size: 13px; color: #888;">{{ $service->description }} ({{ $service->duration_minutes }} мин)</p>
+                    <h4>{{ $service->name }}</h4>
+                    <p>{{ $service->description }} · {{ $service->duration_minutes }} мин</p>
                 </div>
-                <div style="display: flex; align-items: center;">
-                    <div class="service-price" style="margin-right: 20px; font-weight: 600; color: var(--chocolate);">{{ number_format($service->price, 0, '.', ' ') }} ₽</div>
-                    <button class="btn-edit" style="color: var(--gold); background: none; border: none; cursor: pointer; font-weight: 600;" onclick="editService({{ json_encode($service) }})">Редакт.</button>
-                    <form action="{{ Auth::user()->role === 'director' ? route('director.services.delete', $service->id) : route('admin.services.delete', $service->id) }}" method="POST" class="ajax-form" style="display:inline;">
+                <div class="service-actions">
+                    <span class="service-price">{{ number_format($service->price, 0, '.', ' ') }} ₽</span>
+                    <button class="btn-edit-service" onclick="editService({{ json_encode($service) }})">Редакт.</button>
+                    <form action="{{ Auth::user()->role === 'director' ? route('director.services.delete', $service->id) : route('admin.services.delete', $service->id) }}" method="POST" class="ajax-form" style="display:contents;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" style="color: #f44336; background: none; border: none; cursor: pointer; margin-left: 10px;" onclick="return confirm('Удалить услугу?')">×</button>
+                        <button type="submit" class="btn-delete-service" onclick="return confirm('Удалить услугу?')" title="Удалить">×</button>
                     </form>
                 </div>
             </li>
             @empty
-            <li class="service-item">Услуг пока нет</li>
+            <li style="padding:50px 20px; text-align:center; color:#888;">
+                <div style="font-size:40px; margin-bottom:12px; opacity:0.3;">💅</div>
+                <strong style="display:block; font-family:'Playfair Display',serif; color:var(--chocolate); margin-bottom:6px;">Услуг пока нет</strong>
+                <span style="font-size:13px;">Нажмите «+ Новая услуга», чтобы добавить</span>
+            </li>
             @endforelse
         </ul>
-        
-        @if($services->hasPages())
-            <div style="margin-top: 20px; text-align: center;">
-                {{ $services->links() }}
-            </div>
-        @endif
+        <div class="choco-pagination-wrap">{{ $services->links() }}</div>
     </div>
 @endsection
 
-@push('styles')
+{{-- Старые @push стили удалены — пагинация теперь глобально через layouts --}}
+@if(false)
 <style>
-/* Pagination Styles - переопределяем все стили */
+/* удалено */
 .pagination {
     display: flex !important;
     justify-content: center !important;
@@ -229,9 +285,9 @@
     }
 }
 </style>
-@endpush
+@endif
 
-@push('scripts')
+@section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Заменяем SVG на текстовые стрелки
@@ -274,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(style);
 });
 </script>
-@endpush
+@endsection
 
 @section('modals')
     <!-- Modals -->
