@@ -249,7 +249,7 @@
             <h2>{{ $client->name }}</h2>
             <p>{{ $client->phone ?? 'Телефон не указан' }}</p>
             @if($client->telegram_username)
-                <p>@{{ $client->telegram_username }}</p>
+                <p>{{ '@'.$client->telegram_username }}</p>
             @endif
             @if($client->discount > 0)
                 <p style="color: var(--gold); font-weight: 600; margin-top: 8px;">Скидка: {{ $client->discount }}%</p>
