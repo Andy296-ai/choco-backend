@@ -287,51 +287,6 @@
 </style>
 @endif
 
-@section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Заменяем SVG на текстовые стрелки
-    const paginationLinks = document.querySelectorAll('.pagination .page-link');
-    
-    paginationLinks.forEach((link, index) => {
-        // Скрываем все SVG внутри пагинации
-        const svg = link.querySelector('svg');
-        if (svg) {
-            svg.style.display = 'none';
-        }
-        
-        // Определяем тип ссылки и добавляем текстовую стрелку
-        const pageItem = link.closest('.page-item');
-        const isFirst = pageItem && pageItem.previousElementSibling === null;
-        const isLast = pageItem && pageItem.nextElementSibling === null;
-        
-        if (isFirst) {
-            link.innerHTML = '«';
-            link.classList.add('arrow-prev');
-        } else if (isLast) {
-            link.innerHTML = '»';
-            link.classList.add('arrow-next');
-        }
-    });
-    
-    // Принудительно применяем стили
-    const style = document.createElement('style');
-    style.textContent = `
-        .pagination .page-link svg { display: none !important; }
-        .pagination .page-link.arrow-prev,
-        .pagination .page-link.arrow-next {
-            font-size: 18px !important;
-            font-weight: 700 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-    `;
-    document.head.appendChild(style);
-});
-</script>
-@endsection
-
 @section('modals')
     <!-- Modals -->
     <div class="modal-overlay" id="modal-service-add">
