@@ -210,6 +210,12 @@
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .content-card table {
+            min-width: 480px;
         }
 
         /* Кнопки в панели — единый стиль */

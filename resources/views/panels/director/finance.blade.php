@@ -83,6 +83,8 @@
         padding: 25px;
         border-radius: 12px;
         box-shadow: 0 5px 20px rgba(62,39,35,0.06);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .finance-summary {
