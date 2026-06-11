@@ -99,6 +99,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/masters/{master}/schedule', [App\Http\Controllers\Api\AdminApiController::class, 'getSchedule'])->name('masters.schedule');
     Route::post('/masters/{master}/schedule', [App\Http\Controllers\Api\AdminApiController::class, 'updateSchedule'])->name('masters.schedule.update');
     Route::post('/masters/{master}/absence', [App\Http\Controllers\Api\AdminApiController::class, 'storeAbsence'])->name('masters.absence.store');
+    Route::delete('/absences/{absence}', [App\Http\Controllers\Api\AdminApiController::class, 'destroyAbsence'])->name('masters.absence.destroy');
     
     Route::get('/services', [App\Http\Controllers\Panels\AdminController::class, 'services'])->name('services');
     Route::post('/services', [App\Http\Controllers\Api\AdminApiController::class, 'storeService'])->name('services.store');

@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(PortfolioItem::class);
     }
 
+    public function absences()
+    {
+        return $this->hasMany(Absence::class);
+    }
+
     public function isDirector() { return $this->role === self::ROLE_DIRECTOR; }
     public function isAdmin() { return $this->role === self::ROLE_ADMIN; }
     public function isSpecialist() { return $this->role === self::ROLE_SPECIALIST; }

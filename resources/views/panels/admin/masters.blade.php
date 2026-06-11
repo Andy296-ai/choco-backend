@@ -23,7 +23,7 @@
             color: var(--chocolate);
         }
 
-        .master-card p {
+        .master-card > p {
             font-size: 12px;
             color: #888;
             margin-bottom: 15px;
@@ -38,6 +38,65 @@
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        /* ── Список отсутствий ── */
+        .absence-list {
+            margin-top: 14px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 12px;
+            text-align: left;
+        }
+
+        .absence-list-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .absence-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            background: #fff8f8;
+            border: 1px solid #ffe0e0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+
+        .absence-item.future { background: #fff8f0; border-color: #ffe0b2; }
+        .absence-item.past   { background: #f5f5f5; border-color: #e0e0e0; opacity: 0.7; }
+
+        .absence-dates { font-weight: 600; color: var(--chocolate); }
+        .absence-reason { color: #888; font-size: 11px; margin-top: 2px; }
+
+        .btn-absence-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #e53935;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 2px;
+            flex-shrink: 0;
+            opacity: 0.6;
+            transition: opacity 0.15s;
+        }
+        .btn-absence-del:hover { opacity: 1; }
+
+        .absence-empty {
+            font-size: 12px;
+            color: #bbb;
+            text-align: center;
+            padding: 4px 0;
         }
     </style>
 @endsection
@@ -74,7 +133,33 @@
                 <h4>{{ $master->name }}</h4>
                 <p>{{ $master->telegram_username ? '@' . $master->telegram_username : 'Специалист' }}</p>
                 <button class="btn-schedule" onclick="editSchedule({{ $master->id }}, '{{ $master->name }}')">График работы</button>
-                <button class="btn-schedule" style="background: #f5f5f5; margin-top: 5px;" onclick="addAbsence({{ $master->id }}, '{{ $master->name }}')">Отметить отсутствие</button>
+                <button class="btn-schedule" style="background: #f5f5f5; color: var(--chocolate);" onclick="addAbsence({{ $master->id }}, '{{ $master->name }}')">+ Отметить отсутствие</button>
+
+                {{-- Список отсутствий --}}
+                <div class="absence-list">
+                    <div class="absence-list-title">Отсутствия</div>
+                    @forelse($master->absences as $absence)
+                        @php
+                            $now = now()->startOfDay();
+                            $end = \Carbon\Carbon::parse($absence->end_date);
+                            $start = \Carbon\Carbon::parse($absence->start_date);
+                            $cls = $end->lt($now) ? 'past' : ($start->gt($now) ? 'future' : '');
+                        @endphp
+                        <div class="absence-item {{ $cls }}" id="absence-{{ $absence->id }}">
+                            <div>
+                                <div class="absence-dates">
+                                    {{ $start->format('d.m.Y') }} — {{ $end->format('d.m.Y') }}
+                                </div>
+                                @if($absence->reason)
+                                    <div class="absence-reason">{{ $absence->reason }}</div>
+                                @endif
+                            </div>
+                            <button class="btn-absence-del" onclick="deleteAbsence({{ $absence->id }})" title="Удалить">×</button>
+                        </div>
+                    @empty
+                        <div class="absence-empty">Нет отмеченных отсутствий</div>
+                    @endforelse
+                </div>
             </div>
             @empty
             <div style="grid-column: 1/-1; text-align: center; color: #888;">
@@ -228,29 +313,62 @@
         function handleFormSubmit(e) {
             e.preventDefault();
             const form = e.target;
-            
-            // Fix checkboxes not sending '0' when unchecked is tricky with FormData.
-            // The hidden inputs setup above handles this, but let's be sure.
-            
+            const btn = form.querySelector('[type=submit]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Сохранение...'; }
+
             fetch(form.action, {
                 method: 'POST',
                 body: new FormData(form),
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
             })
             .then(res => res.json())
             .then(data => {
-                if(data.error) alert(data.error);
-                else {
-                    alert(data.message || 'Сохранено успешно');
-                    location.reload();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Сохранить'; }
+                } else {
+                    showToast(data.message || 'Сохранено успешно', 'success');
+                    setTimeout(() => location.reload(), 900);
                 }
             })
-            .catch(err => {
-                console.error(err);
-                alert('Произошла ошибка при сохранении');
+            .catch(() => {
+                showToast('Произошла ошибка при сохранении', 'error');
+                if (btn) { btn.disabled = false; btn.textContent = 'Сохранить'; }
             });
+        }
+
+        async function deleteAbsence(id) {
+            if (!confirm('Удалить это отсутствие?')) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            try {
+                const res = await fetch(`{{ url('/admin/absences') }}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrfToken }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || 'Отсутствие удалено', 'success');
+                    const el = document.getElementById(`absence-${id}`);
+                    if (el) {
+                        const list = el.closest('.absence-list');
+                        el.style.transition = 'opacity 0.3s';
+                        el.style.opacity = '0';
+                        setTimeout(() => {
+                            el.remove();
+                            if (list && list.querySelectorAll('.absence-item').length === 0) {
+                                const empty = document.createElement('div');
+                                empty.className = 'absence-empty';
+                                empty.textContent = 'Нет отмеченных отсутствий';
+                                list.appendChild(empty);
+                            }
+                        }, 300);
+                    }
+                } else {
+                    showToast(data.error || 'Ошибка при удалении', 'error');
+                }
+            } catch {
+                showToast('Ошибка сети', 'error');
+            }
         }
     </script>
 @endsection

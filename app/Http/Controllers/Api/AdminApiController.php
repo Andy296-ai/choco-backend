@@ -297,6 +297,19 @@ class AdminApiController extends Controller
         return response()->json(['message' => 'Отсутствие специалиста успешно добавлено']);
     }
 
+    public function destroyAbsence(\App\Models\Absence $absence)
+    {
+        $user = Auth::user();
+
+        // Проверяем что мастер принадлежит салону администратора
+        if ($user->salon_id && $absence->user->salon_id !== $user->salon_id) {
+            return response()->json(['error' => 'Нет доступа'], 403);
+        }
+
+        $absence->delete();
+        return response()->json(['message' => 'Отсутствие удалено']);
+    }
+
     public function storeService(Request $request)
     {
         $validated = $request->validate([

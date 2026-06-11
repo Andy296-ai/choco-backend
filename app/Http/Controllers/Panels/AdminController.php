@@ -124,7 +124,7 @@ class AdminController extends Controller
             });
         }
 
-        $masters = $query->paginate(10);
+        $masters = $query->with(['absences' => fn($q) => $q->orderBy('start_date')])->paginate(10);
         return view('panels.admin.masters', compact('masters'));
     }
 
