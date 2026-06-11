@@ -515,12 +515,22 @@
             <h3>Редактировать работу</h3>
             <button class="close-modal">&times;</button>
         </div>
-        <form id="form-edit" action="" method="POST" class="modal-form">
+        <form id="form-edit" action="" method="POST" class="modal-form" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
+            {{-- Превью текущего фото --}}
+            <div id="edit-preview-wrap" style="margin-bottom:14px; display:none;">
+                <img id="edit-preview-img" src="" alt="Текущее фото"
+                     style="width:100%; max-height:180px; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+            </div>
+            {{-- Скрытое поле с текущим путём (отправляется если новый файл не выбран) --}}
+            <input type="hidden" name="image_path" id="edit-image-path">
             <div class="form-group">
-                <label>Ссылка на фото</label>
-                <input type="url" name="image_path" required>
+                <label>Заменить фото (необязательно)</label>
+                <input type="file" name="image_file" id="edit-image-file"
+                       accept="image/jpeg,image/png,image/webp"
+                       style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:13px;">
+                <div style="font-size:11px; color:#aaa; margin-top:4px;">Оставьте пустым, чтобы сохранить текущее фото</div>
             </div>
             <div class="form-group">
                 <label>Название</label>
@@ -616,9 +626,23 @@
     function openEditModal(id, imageUrl, title, description) {
         const form = document.getElementById('form-edit');
         form.action = `{{ url('/specialist/portfolio') }}/${id}`;
-        form.querySelector('[name=image_path]').value = imageUrl;
+
+        // Заполняем поля
+        document.getElementById('edit-image-path').value = imageUrl;
+        document.getElementById('edit-image-file').value = '';
         form.querySelector('[name=title]').value = title;
         form.querySelector('[name=description]').value = description;
+
+        // Показываем превью текущего фото
+        const previewWrap = document.getElementById('edit-preview-wrap');
+        const previewImg  = document.getElementById('edit-preview-img');
+        if (imageUrl) {
+            previewImg.src = imageUrl;
+            previewWrap.style.display = 'block';
+        } else {
+            previewWrap.style.display = 'none';
+        }
+
         openModal('modal-portfolio-edit');
     }
 

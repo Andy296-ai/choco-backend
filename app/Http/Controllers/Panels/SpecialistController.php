@@ -143,13 +143,26 @@ class SpecialistController extends Controller
             return response()->json(['message' => 'Доступ запрещён'], 403);
         }
 
-        $validated = $request->validate([
-            'image_path'  => 'required|url',
+        $request->validate([
+            'image_file'  => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
+            'image_path'  => 'nullable|string|max:2048',
             'title'       => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $item->update($validated);
+        // Если загружен новый файл — заменяем фото
+        if ($request->hasFile('image_file') && $request->file('image_file')->isValid()) {
+            $path = $request->file('image_file')->store('portfolio', 'public');
+            $imagePath = '/storage/' . $path;
+        } else {
+            $imagePath = $request->input('image_path', $item->image_path);
+        }
+
+        $item->update([
+            'image_path'  => $imagePath,
+            'title'       => $request->input('title'),
+            'description' => $request->input('description'),
+        ]);
 
         return response()->json(['message' => 'Работа обновлена', 'item' => $item]);
     }
