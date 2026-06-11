@@ -18,15 +18,44 @@
             text-align: center;
         }
 
-        .master-card h4 {
-            margin: 10px 0 5px;
-            color: var(--chocolate);
+        /* ── Аватар ── */
+        .master-avatar {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--chocolate), #5D4037);
+            color: var(--gold);
+            font-size: 22px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px;
+            flex-shrink: 0;
         }
 
-        .master-card > p {
+        .master-card h4 {
+            margin: 0 0 4px;
+            color: var(--chocolate);
+            font-size: 15px;
+        }
+
+        /* ── Инфо-строки ── */
+        .master-info-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 12px;
-            color: #888;
-            margin-bottom: 15px;
+            color: #666;
+            margin-bottom: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .master-info-row a { color: #666; text-decoration: none; }
+        .master-info-row a:hover { color: var(--chocolate); text-decoration: underline; }
+
+        .master-info-icon { font-size: 13px; flex-shrink: 0; }
+
+        .master-divider {
+            border: none; border-top: 1px solid #f0f0f0;
+            margin: 14px 0 12px;
         }
 
         .btn-schedule {
@@ -130,8 +159,36 @@
         <div class="master-grid">
             @forelse($masters as $master)
             <div class="master-card">
+                {{-- Аватар --}}
+                <div class="master-avatar">{{ mb_strtoupper(mb_substr($master->name, 0, 1)) }}</div>
+
                 <h4>{{ $master->name }}</h4>
-                <p>{{ $master->telegram_username ? '@' . $master->telegram_username : 'Специалист' }}</p>
+
+                {{-- Контактная информация --}}
+                @if($master->phone)
+                    <div class="master-info-row">
+                        <span class="master-info-icon">📞</span>
+                        <a href="tel:{{ $master->phone }}">{{ $master->phone }}</a>
+                    </div>
+                @endif
+                @if($master->email && !str_ends_with($master->email, '@client.local'))
+                    <div class="master-info-row">
+                        <span class="master-info-icon">✉️</span>
+                        <a href="mailto:{{ $master->email }}">{{ $master->email }}</a>
+                    </div>
+                @endif
+                @if($master->telegram_username)
+                    <div class="master-info-row">
+                        <span class="master-info-icon">✈️</span>
+                        <a href="https://t.me/{{ $master->telegram_username }}" target="_blank">@{{ $master->telegram_username }}</a>
+                    </div>
+                @endif
+                @if(!$master->phone && !$master->email && !$master->telegram_username)
+                    <div class="master-info-row" style="color:#bbb;">Контакты не указаны</div>
+                @endif
+
+                <hr class="master-divider">
+
                 <button class="btn-schedule" onclick="editSchedule({{ $master->id }}, '{{ $master->name }}')">График работы</button>
                 <button class="btn-schedule" style="background: #f5f5f5; color: var(--chocolate);" onclick="addAbsence({{ $master->id }}, '{{ $master->name }}')">+ Отметить отсутствие</button>
 
