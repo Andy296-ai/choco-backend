@@ -22,7 +22,7 @@ class DemoExamSeeder extends Seeder
         $salonId = 1; // Шоколад — Хотьково
 
         // ─── АДМИНИСТРАТОР ────────────────────────────────────────────────────
-        $admin = User::firstOrCreate(
+        User::firstOrCreate(
             ['login' => 'marina_kh'],
             [
                 'name'     => 'Марина Кириллова',
@@ -62,6 +62,7 @@ class DemoExamSeeder extends Seeder
             if (!$specialist->schedules()->where('day_of_week', $day)->exists()) {
                 Schedule::create([
                     'user_id'     => $specialist->id,
+                    'salon_id'    => $salonId,
                     'day_of_week' => $day,
                     'start_time'  => $start,
                     'end_time'    => $end,
@@ -79,28 +80,16 @@ class DemoExamSeeder extends Seeder
             return;
         }
 
-        // Разбиваем услуги по типу для реалистичности
-        $hairServices = $services->filter(fn($s) => in_array($s->name, [
-            'Женская стрижка', 'Мужская стрижка', 'Окрашивание волос',
-            'Сложное окрашивание', 'Укладка волос',
-        ]));
-        $nailServices = $services->filter(fn($s) => str_contains($s->name, 'маникюр')
-            || str_contains($s->name, 'Маникюр')
-            || str_contains($s->name, 'педикюр')
-            || str_contains($s->name, 'Педикюр'));
-
-        $start = Carbon::create(2026, 5, 11); // месяц назад
+        $start = Carbon::create(2026, 5, 11);
         $end   = Carbon::create(2026, 6, 30);
         $today = Carbon::create(2026, 6, 11);
 
-        // Временные слоты в течение дня
-        $timeSlots = [
-            ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'],
-            ['12:00', '12:30', '13:00', '13:30'],
-            ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
-            ['17:00', '17:30', '18:00', '18:30'],
+        $allSlots = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+            '12:00', '12:30', '13:00', '13:30',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+            '17:00', '17:30', '18:00', '18:30',
         ];
-        $allSlots = array_merge(...$timeSlots);
 
         // Фиксированные комбинации клиент + услуга для разнообразия
         $bookingTemplates = [
