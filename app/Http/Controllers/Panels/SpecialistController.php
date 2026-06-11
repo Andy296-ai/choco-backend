@@ -168,7 +168,8 @@ class SpecialistController extends Controller
     public function schedule()
     {
         $schedules = Auth::user()->schedules()->orderBy('id')->get();
-        return view('panels.specialist.schedule', compact('schedules'));
+        $absences  = Auth::user()->absences()->orderBy('start_date')->get();
+        return view('panels.specialist.schedule', compact('schedules', 'absences'));
     }
 
     public function updateSchedule(Request $request)

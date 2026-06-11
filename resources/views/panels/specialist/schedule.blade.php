@@ -289,6 +289,67 @@
             }
         }
 
+        /* ── Отсутствия ── */
+        .absence-section {
+            margin-top: 24px;
+        }
+
+        .absence-section h2 {
+            font-size: 18px;
+            color: var(--chocolate);
+            margin: 0 0 14px;
+            font-family: 'Raleway', sans-serif;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
+        .absence-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .absence-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 4px solid #e57373;
+            background: #fff8f8;
+            font-size: 13px;
+        }
+
+        .absence-item.future { border-left-color: #FFB74D; background: #fff8f0; }
+        .absence-item.past   { border-left-color: #bdbdbd; background: #f5f5f5; opacity: 0.75; }
+
+        .absence-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+        .absence-dates {
+            font-weight: 700;
+            color: var(--chocolate);
+        }
+
+        .absence-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        .label-active  { background: #ffebee; color: #c62828; }
+        .label-future  { background: #fff3e0; color: #e65100; }
+        .label-past    { background: #f5f5f5; color: #757575; }
+
+        .absence-reason { color: #888; font-size: 12px; margin-top: 3px; }
+
+        .absence-empty {
+            color: #aaa;
+            font-size: 13px;
+            padding: 16px 0;
+            text-align: center;
+        }
+
         @media (max-width: 480px) {
             .header h1 {
                 font-size: 18px;
@@ -382,6 +443,50 @@
 
                 <button type="submit" class="btn-save">Сохранить изменения</button>
             </form>
+        </div>
+
+        {{-- Блок отсутствий --}}
+        <div class="absence-section">
+            <div class="content-card">
+                <h2>Мои отсутствия</h2>
+                @php $now = now()->startOfDay(); @endphp
+                @if($absences->isEmpty())
+                    <div class="absence-empty">Отсутствий не отмечено</div>
+                @else
+                    <div class="absence-list">
+                        @foreach($absences as $absence)
+                            @php
+                                $start = \Carbon\Carbon::parse($absence->start_date);
+                                $end   = \Carbon\Carbon::parse($absence->end_date);
+                                if ($end->lt($now)) {
+                                    $cls = 'past'; $label = 'Прошедшее'; $labelCls = 'label-past'; $icon = '✓';
+                                } elseif ($start->gt($now)) {
+                                    $cls = 'future'; $label = 'Запланировано'; $labelCls = 'label-future'; $icon = '📅';
+                                } else {
+                                    $cls = ''; $label = 'Сейчас'; $labelCls = 'label-active'; $icon = '⚠️';
+                                }
+                            @endphp
+                            <div class="absence-item {{ $cls }}">
+                                <div class="absence-icon">{{ $icon }}</div>
+                                <div>
+                                    <div>
+                                        <span class="absence-dates">
+                                            {{ $start->format('d.m.Y') }} — {{ $end->format('d.m.Y') }}
+                                        </span>
+                                        <span class="absence-label {{ $labelCls }}">{{ $label }}</span>
+                                    </div>
+                                    @if($absence->reason)
+                                        <div class="absence-reason">{{ $absence->reason }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p style="margin-top:14px; font-size:12px; color:#aaa;">
+                        Управление отсутствиями — у администратора салона.
+                    </p>
+                @endif
+            </div>
         </div>
     </div>
 
