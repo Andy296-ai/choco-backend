@@ -40,7 +40,14 @@ class SendTelegramNotification implements ShouldQueue
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}";
-            $response = Http::post("{$apiUrl}/sendMessage", [
+
+            $client = Http::timeout(15);
+            $proxy = config('services.telegram.proxy');
+            if (!empty($proxy)) {
+                $client = $client->withOptions(['proxy' => $proxy]);
+            }
+
+            $response = $client->post("{$apiUrl}/sendMessage", [
                 'chat_id' => $this->telegramId,
                 'text' => $this->message,
                 'parse_mode' => 'HTML'

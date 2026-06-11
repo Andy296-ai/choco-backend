@@ -27,6 +27,15 @@ class TelegramNotificationService
         return true;
     }
 
+    public function getProxyOptions(): array
+    {
+        $proxy = config('services.telegram.proxy');
+        if (empty($proxy)) {
+            return [];
+        }
+        return ['proxy' => $proxy];
+    }
+
     /**
      * Уведомление о создании записи
      */
