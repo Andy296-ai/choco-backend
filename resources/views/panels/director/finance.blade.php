@@ -157,18 +157,30 @@
 
     /* ── Блок эффективности мастеров ── */
     .masters-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 380px) 1fr;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 24px;
-        align-items: start;
+        align-items: flex-start;
     }
 
-    .masters-chart-col { min-width: 0; }
+    .masters-chart-col {
+        flex: 0 0 340px;
+        position: relative;
+        height: 260px;
+    }
+
+    .masters-chart-col canvas {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
 
     .masters-table-wrap {
+        flex: 1 1 300px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        min-width: 0;
     }
 
     .masters-table {
@@ -209,16 +221,20 @@
         font-size: 13px;
     }
 
-    /* Ноутбук ≤ 1100px: сетка страницы в одну колонку, мастера тоже */
+    /* Ноутбук ≤ 1100px */
     @media (max-width: 1100px) {
         .content-grid { grid-template-columns: 1fr; }
-        .masters-layout {
-            grid-template-columns: 1fr;
-        }
-        .masters-layout .chart-container { height: 220px !important; }
     }
 
-    /* Планшет */
+    /* Планшет — chart и table перестраиваются в столбец */
+    @media (max-width: 900px) {
+        .masters-chart-col {
+            flex: 0 0 100%;
+            height: 220px;
+        }
+        .masters-table-wrap { flex: 0 0 100%; }
+    }
+
     @media (max-width: 768px) {
         .finance-header-row { flex-direction: column; }
         .filter-form { width: 100%; }
@@ -232,7 +248,7 @@
     @media (max-width: 480px) {
         .finance-summary { grid-template-columns: 1fr 1fr; }
         .summary-item .amount { font-size: 20px; }
-        .masters-table { font-size: 11px; min-width: 280px; }
+        .masters-table { font-size: 11px; }
         .masters-table thead th,
         .masters-table td { padding: 7px 8px; }
         .level-badge { font-size: 9px; padding: 2px 5px; }
@@ -351,7 +367,7 @@
                 <div class="empty-state">Нет данных за выбранный период</div>
             @else
                 <div class="masters-layout">
-                    <div class="masters-chart-col chart-container" style="height:260px;">
+                    <div class="masters-chart-col">
                         <canvas id="masterPerformanceChart"></canvas>
                     </div>
                     <div class="masters-table-wrap">
@@ -437,7 +453,7 @@
 
     @if(!empty($masterPerformance) && count($masterPerformance) > 0)
     const masterData = @json($masterPerformance);
-    new Chart(document.getElementById('masterPerformanceChart').getContext('2d'), {
+    const masterChart = new Chart(document.getElementById('masterPerformanceChart').getContext('2d'), {
         type: 'bar',
         data: {
             labels: masterData.map(m => m.name),
@@ -452,6 +468,7 @@
             scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
         }
     });
+    window.addEventListener('load', () => masterChart.resize());
     @endif
 
     function toggleSort(type) {
