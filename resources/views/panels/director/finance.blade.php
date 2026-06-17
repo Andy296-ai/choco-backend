@@ -170,13 +170,6 @@
         height: 260px;
     }
 
-    .masters-chart-col canvas {
-        position: absolute;
-        inset: 0;
-        width: 100% !important;
-        height: 100% !important;
-    }
-
     .masters-table-wrap {
         flex: 1 1 300px;
         overflow-x: auto;
@@ -226,12 +219,9 @@
         .content-grid { grid-template-columns: 1fr; }
     }
 
-    /* Планшет — chart и table перестраиваются в столбец */
+    /* Планшет и мобиле — чарт скрываем, таблица на всю ширину */
     @media (max-width: 900px) {
-        .masters-chart-col {
-            flex: 0 0 100%;
-            height: 220px;
-        }
+        .masters-chart-col { display: none; }
         .masters-table-wrap { flex: 0 0 100%; }
     }
 
