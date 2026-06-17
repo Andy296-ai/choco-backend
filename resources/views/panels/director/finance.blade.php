@@ -158,15 +158,22 @@
     /* ── Блок эффективности мастеров ── */
     .masters-layout {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 380px) 1fr;
         gap: 24px;
         align-items: start;
     }
 
-    .masters-table-wrap { overflow-x: auto; }
+    .masters-chart-col { min-width: 0; }
+
+    .masters-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        min-width: 0;
+    }
 
     .masters-table {
         width: 100%;
+        min-width: 320px;
         border-collapse: collapse;
         font-size: 13px;
     }
@@ -183,7 +190,7 @@
 
     .masters-table tbody tr { border-bottom: 1px solid #eee; }
 
-    .masters-table td { padding: 10px 12px; }
+    .masters-table td { padding: 10px 12px; white-space: nowrap; }
 
     .level-badge {
         padding: 2px 8px;
@@ -192,6 +199,7 @@
         font-weight: 700;
         text-transform: uppercase;
         display: inline-block;
+        white-space: nowrap;
     }
 
     .empty-state {
@@ -201,21 +209,33 @@
         font-size: 13px;
     }
 
+    /* Ноутбук ≤ 1100px: сетка страницы в одну колонку, мастера тоже */
     @media (max-width: 1100px) {
         .content-grid { grid-template-columns: 1fr; }
-        .masters-layout { grid-template-columns: 1fr; }
-        .masters-layout .chart-container { height: 220px; }
+        .masters-layout {
+            grid-template-columns: 1fr;
+        }
+        .masters-layout .chart-container { height: 220px !important; }
     }
 
+    /* Планшет */
     @media (max-width: 768px) {
         .finance-header-row { flex-direction: column; }
         .filter-form { width: 100%; }
         .finance-summary { grid-template-columns: repeat(2, 1fr); }
+        .masters-table { font-size: 12px; }
+        .masters-table thead th,
+        .masters-table td { padding: 8px 10px; }
     }
 
+    /* Телефон */
     @media (max-width: 480px) {
         .finance-summary { grid-template-columns: 1fr 1fr; }
         .summary-item .amount { font-size: 20px; }
+        .masters-table { font-size: 11px; min-width: 280px; }
+        .masters-table thead th,
+        .masters-table td { padding: 7px 8px; }
+        .level-badge { font-size: 9px; padding: 2px 5px; }
     }
 </style>
 @endsection
@@ -331,7 +351,7 @@
                 <div class="empty-state">Нет данных за выбранный период</div>
             @else
                 <div class="masters-layout">
-                    <div class="chart-container" style="height:260px;">
+                    <div class="masters-chart-col chart-container" style="height:260px;">
                         <canvas id="masterPerformanceChart"></canvas>
                     </div>
                     <div class="masters-table-wrap">
