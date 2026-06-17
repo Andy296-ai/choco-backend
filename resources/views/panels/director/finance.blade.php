@@ -344,7 +344,7 @@
             </div>
         </div>
 
-        <!-- Эффективность мастеров (full-width, исправленный блок) -->
+        {{-- TODO: блок «Эффективность мастеров» временно скрыт — требует доработки адаптивности чарта
         <div class="content-card full-width">
             <h3 class="card-title">
                 Эффективность мастеров
@@ -391,6 +391,7 @@
                 </div>
             @endif
         </div>
+        --}}
     </div>
 @endsection
 
@@ -441,6 +442,7 @@
             plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
     });
 
+    {{-- TODO: JS чарта «Эффективность мастеров» — раскомментировать вместе с блоком выше
     @if(!empty($masterPerformance) && count($masterPerformance) > 0)
     const masterData = @json($masterPerformance);
     const masterChart = new Chart(document.getElementById('masterPerformanceChart').getContext('2d'), {
@@ -460,6 +462,7 @@
     });
     window.addEventListener('load', () => masterChart.resize());
     @endif
+    --}}
 
     function toggleSort(type) {
         const input = document.getElementById(type + '_sort');
